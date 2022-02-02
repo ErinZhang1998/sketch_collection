@@ -1,0 +1,49 @@
+Type: tube shaped
+answer_1-7	answer_10-7	answer_11-7
+Sketch 1; Sketch 6; 	Sketch 3; Sketch 12; Sketch 16; 	Sketch 5; 
+answer_12-7	answer_13-7	answer_14-7
+Sketch 4; 	Sketch 10; 	Sketch 17; 
+answer_15-7	answer_16-7	answer_17-7
+Sketch 20; 	Sketch 3; Sketch 12; 	Sketch 6; 
+answer_18-7	answer_19-7	answer_2-7
+Sketch 4; Sketch 16; 	Sketch 9; Sketch 11; 	Sketch 13; 
+answer_20-7	answer_3-7	answer_4-7
+Sketch 5; 	Sketch 2; Sketch 7; Sketch 19; 	Sketch 9; Sketch 19; 
+answer_5-7	answer_6-7	answer_7-7
+Sketch 16; 	Sketch 8; Sketch 13; Sketch 18; 	Sketch 11; 
+answer_8-7	answer_9-7
+Sketch 2; Sketch 5; Sketch 12; 	Sketch 14; Sketch 20; 
+
+Type: angled at the top and then zigzag/u-shapes at the bottom
+answer_1-7	answer_10-7	answer_12-7
+Sketch 2; 	Sketch 4; 	Sketch 3; Sketch 12; 
+answer_13-7	answer_14-7	answer_15-7
+Sketch 4; Sketch 11; 	Sketch 10; 	Sketch 6; 
+answer_16-7	answer_17-7	answer_18-7
+Sketch 1; 	Sketch 16; 	Sketch 10; 
+answer_19-7	answer_20-7	answer_6-7
+Sketch 4; Sketch 10; Sketch 20; 	Sketch 3; Sketch 8; Sketch 10; Sketch 11; 	Sketch 16; 
+answer_7-7	answer_8-7
+Sketch 4; 	Sketch 3; 
+
+Type: oval shaped
+answer_1-7	answer_11-7	answer_15-7
+Sketch 3; Sketch 17; 	Sketch 13; 	Sketch 17; Sketch 20; 
+answer_16-7	answer_18-7	answer_19-7
+Sketch 13; 	Sketch 15; 	Sketch 9; 
+answer_2-7	answer_20-7	answer_3-7
+Sketch 8; 	Sketch 12; Sketch 15; 	Sketch 15; 
+answer_5-7	answer_6-7	answer_7-7
+Sketch 9; 	Sketch 13; 	Sketch 11; Sketch 17; 
+answer_9-7
+Sketch 13; Sketch 14; 
+
+Type:
+answer_1-7	answer_10-7	answer_12-7
+Sketch 4; Sketch 16; Sketch 19; 	Sketch 18; 	Sketch 5; 
+answer_15-7	answer_17-7	answer_2-7
+Sketch 9; 	Sketch 7; 	Sketch 7; Sketch 19; 
+answer_3-7	answer_4-7	answer_5-7
+Sketch 1; Sketch 6; Sketch 14; 	Sketch 15; 	Sketch 17; 
+answer_7-7	answer_9-7
+Sketch 3; 	Sketch 15; 
