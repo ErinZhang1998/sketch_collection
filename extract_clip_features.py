@@ -86,7 +86,7 @@ all_image_paths = []
 
 img_augs = []
 image_paths = []
-
+count = 0
 for f_idx, f in enumerate(sub_files):
     
     if not f.endswith(".png"):
@@ -98,9 +98,7 @@ for f_idx, f in enumerate(sub_files):
     
     img_path = os.path.join(folder, f)
     pimg = PIL.Image.open(img_path)
-    
     image_paths.append(img_path)
-    
     if(len(np.asarray(pimg).shape) < 3):
         pimg = pimg.convert(mode='RGB')
     if args.flip:
@@ -109,16 +107,19 @@ for f_idx, f in enumerate(sub_files):
     
     img_augs.append(resize_to_clip(pimg).unsqueeze(0))
     acc -= 1
+    count += 1
     if f_idx == len(sub_files)-1:     
         all_batches.append(img_augs)
         all_image_paths.append(image_paths)
         break
-    if acc < 1:
+    if acc < 1 or f_idx == (end_idx-1):
         acc = batch_size
         all_batches.append(img_augs)
         all_image_paths.append(image_paths)
         img_augs = [] 
         image_paths = []
+
+# print(count)
 
 all_image_features = []
 batch_start_idx = start_idx / batch_size
@@ -135,9 +136,9 @@ for batch_idx in range(len(all_batches)):
     
     im_batch = torch.cat(all_batches[batch_idx])
     im_batch = im_batch.cuda(pydiffvg.get_device())
-    
-    image_features = model.encode_image(im_batch)
+    with torch.no_grad():
+        image_features = model.encode_image(im_batch)
     all_image_features.append(image_features)
-    
+    print(image_features.shape)
     with open(feature_path, 'wb') as f:
-        np.save(f, image_features.detach().cpu().numpy())
+        np.save(f, image_features.cpu().numpy())

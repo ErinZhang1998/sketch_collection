@@ -16,11 +16,56 @@ import pdb
 import PIL.ImageOps
 import collections
 import constants as CONST
+from scipy.spatial import distance
+import base64
 
-def get_features(feature_folder_template):
+
+
+# This is wrote to pair up images to show to the turkers
+# want to pair images that are as dissimilar as possible
+def get_pair(image_list, image_feature_dict):
+    v = image_list
+
+    pair = []
+
+    not_taken = [x for x in v]
+    for p1 in v:
+        if p1 not in not_taken:
+            continue
+        not_taken.remove(p1)
+        dist = []
+
+        if len(not_taken) == 0:
+            for p2 in v:
+                d = distance.cosine(image_feature_dict[p1], image_feature_dict[p2])
+                dist.append((p2, d))
+        else:
+            for p2 in not_taken:
+                d = distance.cosine(image_feature_dict[p1], image_feature_dict[p2])
+                dist.append((p2, d))
+
+        dist = sorted(dist, key=lambda x: x[1])
+        p2,d = dist[-1]
+        if len(not_taken) == 0:
+            print(p1,p2)
+        else:
+            not_taken.remove(p2)
+        pair.append((p1,p2))
+    
+    not_taken = [x for x in v]
+    for p1,p2 in pair:
+        try:
+            not_taken.remove(p1)
+            not_taken.remove(p2)
+        except:
+            print(p1,p2)
+    print(not_taken)
+    return pair
+
+def get_features(feature_folder_template, part_idx_list):
     
     feature_dict = collections.defaultdict(lambda: {})
-    for part_idx in [0,1,2,4,6]:
+    for part_idx in part_idx_list:
         feature_folder = feature_folder_template.format(str(part_idx))
         for file in os.listdir(feature_folder):
             if not file.endswith(".npy"):
@@ -36,6 +81,68 @@ def get_features(feature_folder_template):
             for feati,pathi in zip(feat,image_paths):
                 feature_dict[part_idx][int(pathi.split("/")[-1].split(".")[0])] = feati
     return feature_dict
+
+def transform_spg_2_quickdraw(drawing_raw, label_selected=[]):
+    drawing_raw = np.asarray(drawing_raw)
+    abs_x = 25
+    abs_y = 25
+
+    drawing = [
+        [
+            [],
+            [],
+        ],
+    ]
+    x,y = abs_x,abs_y
+    for idx,(dx,dy,p,l) in enumerate(drawing_raw):
+        
+        x = x+dx
+        y = y+dy
+        if len(label_selected) > 0:
+            if l not in label_selected:
+                continue
+        drawing[-1][0].append(x)
+        drawing[-1][1].append(y)
+
+        if(p > 0 and idx < len(drawing_raw)-2):
+            drawing.append([[],[]])
+    
+    # centering the parts
+    all_points = []
+    for stroke in drawing:
+        stroke = np.asarray(stroke).T
+        all_points.append(stroke) 
+    x1,y1 = np.min(np.vstack(all_points), axis=0)
+    x2,y2 = np.max(np.vstack(all_points), axis=0)
+    xc,yc = (x1+x2)/2, (y1+y2)/2
+    dx = 256/2 - xc
+    dy = 256/2 - yc
+
+    final_drawing = []
+    for stroke in drawing:
+        xs = [xpts + dx for xpts in stroke[0]]
+        ys = [ypts + dy for ypts in stroke[1]]
+        final_drawing.append([xs,ys])
+    
+    return final_drawing
+
+def all_indices_with_parts(json_file, L, part_idx):
+    idxs = []
+    for idx in L:
+        drawing_raw = json_file['train_data'][idx]
+        labels = np.unique(np.asarray(drawing_raw)[:,-1])
+        if part_idx in labels:
+            idxs.append(idx)
+    return idxs
+
+def create_im(json_file, i, part_idxs=[]):
+    drawing_raw = json_file['train_data'][i]
+    drawing_new = transform_spg_2_quickdraw(drawing_raw, label_selected=part_idxs)
+    vector_part = []
+    for stroke in drawing_new:
+        stroke = np.asarray(stroke).T
+        vector_part.append(stroke)
+    return vector_part
 
 def render_img(
     vector_part, 
@@ -93,11 +200,10 @@ def data2abspoints(data, label_selected=[]):
         0 : (255,0,0), #red
         1 : (0,255,0), #green
         2 : (0,0,255), #blue
-        3 : (255,255,0), #yellow
+        3 : (0,0,139), #dark blue
         4 : (0,255,255), #cyan
         5 : (255,0,255), #magenta
-        6 : (255,192,203), #pink
-        # 7 : (128,128,0), #olive
+        6 : (255,165,0), #orange
         7: (255,165,0), #orange
         8 : (0,128,128),
         9 : (255,192,203),
@@ -262,41 +368,178 @@ def split_into_individual_strokes(data):
             result.append([[],[]])
     return result
 
-def show_these_sketches(
-    png_indices, 
-    titles, 
-    part_indices, 
-    show_title=True,
-    num_pngs_per_row = 2,
-    row_figsize = 6,
-    column_figsize = 3,
-):
-    
-    
-    num_rows = len(png_indices) // num_pngs_per_row
-    if num_rows * num_pngs_per_row < len(png_indices):
-        num_rows += 1
+def get_web_data_single(obj_json, idx): 
+    drawing_raw = obj_json['train_data'][idx]
+    absolute_coord = to_absolute(drawing_raw)
+    drawing_dict = {}
+    part_idx_to_show = np.unique(np.asarray(absolute_coord)[:,-1])
+    for l in part_idx_to_show:
+        stroke3_selected = select_absolutedata(absolute_coord, label_selected=[l])
+        stroke3_selected_split = split_into_individual_strokes(stroke3_selected)
+        drawing_dict[int(l)] = stroke3_selected_split
+    return drawing_dict
 
-    fig = plt.figure(figsize=(num_pngs_per_row * row_figsize, num_rows * column_figsize)) 
-    fig.patch.set_alpha(1)  # solution
+def get_web_data(png_to_drawing_dict, idx_pair, part_annotations, example_notes=[], part_idx_to_show=[], category_name="face"): 
+    supporting = []
+    for anno_idx, idx in enumerate(idx_pair):
+        supporting.append(png_to_drawing_dict[idx])
 
-    for index, idx in enumerate(png_indices):
-        plt.subplot(num_rows, num_pngs_per_row, index+1)
+    data_dict = {
+        "Qtype" : "img-sketch",
+        "Question" : category_name,
+        "Supporting" : supporting,
+        "PartsToAnnotate" : part_annotations,
+        "ExampleNotes" : example_notes,
+    }
+    return data_dict
+
+def get_base64_data(png_to_drawing_dict, selected_pairs, low, high, category_name, parts_idx_dict):
+    base64_data = []
+    indices_used = []
+
+    ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! THE RANGE (lo,high) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    for task_idx in range(low, high):
+        one_hit = selected_pairs[task_idx*5:(task_idx+1) * 5]
+        indices_used.append(one_hit)
+        hit_data = []
+
+        for pair_idx, (img1, img2, part_idx) in enumerate(one_hit):
+            pair = [img1,img2]
+            part_annotations = [[int(part_idx), parts_idx_dict[part_idx], ["", ""], "a/an"]]
+            pair_data = get_web_data(png_to_drawing_dict, pair, part_annotations, category_name=category_name)
+            hit_data += [pair_data]
+
+        y = json.dumps(hit_data)
+        dataBytes = y.encode("utf-8")
+        encoded = base64.b64encode(dataBytes)
+        base64_data.append(str(encoded)[2:-1])
+    return base64_data
+
+
+def compile_face_dfs():
+    result_folders = [
+        '/raid/xiaoyuz1/amazon_turk/2022_03_17_release', # 100
+        '/raid/xiaoyuz1/amazon_turk/2022_03_21_release', # no.1
+        '/raid/xiaoyuz1/amazon_turk/2022_03_22_release', # no.2
+        '/raid/xiaoyuz1/amazon_turk/2022_03_23_release', # no.3
+        '/raid/xiaoyuz1/amazon_turk/2022_03_23_release_2', # no.4
+        '/raid/xiaoyuz1/amazon_turk/2022_03_24_release', # no.5
+        '/raid/xiaoyuz1/amazon_turk/2022_03_24_release_2', # no.6
+        '/raid/xiaoyuz1/amazon_turk/2022_04_04_release', # no.7
+        '/raid/xiaoyuz1/amazon_turk/2022_04_04_release_2' # no.8
+        '/raid/xiaoyuz1/amazon_turk/2022_04_05_release', # no.9
+    ]
+
+    result_csv_files = [
+        'Batch_4693878_batch_results.csv',
+        'Batch_4696268_batch_results.csv', # no.1
+        'Batch_4697008_batch_results.csv',# no.2
+        'Batch_4697913_batch_results.csv',# no.3
+        'Batch_4698198_batch_results.csv',# no.4
+        'Batch_4698860_batch_results.csv',# no.5
+        'Batch_4699064_batch_results.csv',# no.6
+        'Batch_4706822_batch_results.csv',# no.7
+        'Batch_4707033_batch_results.csv',# no.8
+        'Batch_4707866_batch_results.csv',# no.9
+    ]
+
+    dfs = []
+    selected_pairss = [
+        np.load('/raid/xiaoyuz1/amazon_turk/2022_03_17_release/png_list.npy'),
+        np.load('/raid/xiaoyuz1/amazon_turk/2022_03_21_release/png_list.npy'),
+        np.load('/raid/xiaoyuz1/amazon_turk/2022_04_04_release/png_list.npy'),
+        np.load('/raid/xiaoyuz1/amazon_turk/2022_04_05_release/png_list.npy'),
+    ]
+    df_inputs = []
+
+    for i,(result_folder,csv_file) in enumerate(zip(result_folders, result_csv_files)):
+        result_fname = os.path.join(result_folder,csv_file)
+        dfs += [pd.read_csv(result_fname)]
+        df_inputs += [pd.read_csv(os.path.join(result_folder, 'png_list.csv'))]
+
+    df_idx_to_task_idxs = []
+    for j in range(len(dfs)):
+
+        df = dfs[j]
+        df_input = df_inputs[j]
         
-        drawing_raw = CONST.face_json['train_data'][idx]
-        image_data = transform_spg_2_svg_png(
-            drawing_raw, 
-            draw_color = True, 
-            stroke_width = 3,
-            color_selected = part_indices[index],
-        )
-        
-        plt.imshow(image_data)
-        plt.title(titles[index])
-        plt.axis('off')
+        df_idx_to_task_idx = np.zeros((len(df), 5, 3))
+        for i in range(len(df)):
+            task_idx = np.where(df_input['base64'] == df.iloc[i]['Input.base64'])[0][0]
+            if j == 2:
+                task_idx += 50
+            if j == 3:
+                task_idx += 150
+            if j == 4:
+                task_idx += 200
+            if j == 5:
+                task_idx += 250
+            if j == 6:
+                task_idx += 300
+            
+            if j == 8:
+                task_idx += 60
+            
+            if j == 10:
+                task_idx += 50
+                
+            if j == 0:
+                df_idx_to_task_idx[i] = selected_pairss[0][task_idx*5:(task_idx+1) * 5]
+            elif j > 0 and j <= 6:
+                df_idx_to_task_idx[i] = selected_pairss[1][task_idx*5:(task_idx+1) * 5]
+            elif j > 6 and j <= 8:
+                df_idx_to_task_idx[i] = selected_pairss[2][task_idx*5:(task_idx+1) * 5]
+            elif j > 8:
+                df_idx_to_task_idx[i] = selected_pairss[3][task_idx*5:(task_idx+1) * 5]
 
-    plt.show()
-    plt.close()
+        df_idx_to_task_idx = df_idx_to_task_idx.astype(int)    
+        df_idx_to_task_idxs += [df_idx_to_task_idx]
+
+    return dfs, selected_pairss, df_inputs, df_idx_to_task_idxs
+
+def new_df_pair(dfs, df_idx_to_task_idxs, skip=[]):
+    data = {
+        'image_1': [],
+        'image_2': [],
+        'worker_id': [],
+        'part': [],
+        #'cluster_1': [],
+        #'cluster_2': [],
+        'text_1': [],
+        'text_2': [],
+    }
+    
+    problematic = []
+    for j in range(len(dfs)):
+        if j in skip:
+            continue
+        
+        df = dfs[j]
+        df_idx_to_task_idx = df_idx_to_task_idxs[j].astype(int)
+        for i in range(len(df)):
+            row = df.iloc[i]
+            one_hit = df_idx_to_task_idx[i]
+            for anno_idx,(img1,img2,part_idx) in zip(range(1, 6),one_hit):
+                k1 = "Answer.inputAnnotationName_{}-{}__{}".format(anno_idx, part_idx, 1)
+                k2 = "Answer.inputAnnotationName_{}-{}__{}".format(anno_idx, part_idx, 2)
+                
+                try:
+                
+                    #c1 = img_to_part_cluster[(img1, part_idx)]
+                    #c2 = img_to_part_cluster[(img2, part_idx)]
+                    data['image_1'].append(img1)
+                    data['image_2'].append(img2)
+                    data['worker_id'].append(row['WorkerId'])
+                    data['part'].append(part_idx)
+                    #data['cluster_1'].append(c1)
+                    #data['cluster_2'].append(c2)
+                    data['text_1'].append(row[k1])
+                    data['text_2'].append(row[k2])
+                except:
+                    print(j, i)
+    dfn = pd.DataFrame.from_dict(data)
+    return dfn
+
 
 # ------------------------------------------------------------------------------------------------
 def get_img(img_path):
@@ -544,48 +787,7 @@ def lines_to_strokes(lines):
   return strokes[1:, :]
 
 
-def transform_spg_2_quickdraw(drawing_raw, label_selected=[]):
-    drawing_raw = np.asarray(drawing_raw)
-    abs_x = 25
-    abs_y = 25
 
-    drawing = [
-        [
-            [],
-            [],
-        ],
-    ]
-    x,y = abs_x,abs_y
-    for idx,(dx,dy,p,l) in enumerate(drawing_raw):
-        
-        x = x+dx
-        y = y+dy
-        if len(label_selected) > 0:
-            if l not in label_selected:
-                continue
-        drawing[-1][0].append(x)
-        drawing[-1][1].append(y)
-
-        if(p > 0 and idx < len(drawing_raw)-2):
-            drawing.append([[],[]])
-    
-    all_points = []
-    for stroke in drawing:
-        stroke = np.asarray(stroke).T
-        all_points.append(stroke) 
-    x1,y1 = np.min(np.vstack(all_points), axis=0)
-    x2,y2 = np.max(np.vstack(all_points), axis=0)
-    xc,yc = (x1+x2)/2, (y1+y2)/2
-    dx = 256/2 - xc
-    dy = 256/2 - yc
-
-    final_drawing = []
-    for stroke in drawing:
-        xs = [xpts + dx for xpts in stroke[0]]
-        ys = [ypts + dy for ypts in stroke[1]]
-        final_drawing.append([xs,ys])
-    
-    return final_drawing
 
 
 
