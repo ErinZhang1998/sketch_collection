@@ -1,0 +1,25 @@
+Number of train batches:  61
+Number of test batches:  16
+Number of test batches:  20
+Number of dev batches:  8
+Number of dev batches:  10
+/raid/xiaoyuz1/clip_model_checkpoint/fiery-butterfly-21.pt /raid/xiaoyuz1/clip_model_checkpoint/fiery-butterfly-21.pickle
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+Final TRAIN: acc=0.938
+Final DEV: face acc=0.693
+Final DEV: angel acc=0.689
+Final TEST: face acc=0.709
+Final TEST: angel acc=0.694

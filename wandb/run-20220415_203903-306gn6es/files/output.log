@@ -1,0 +1,16 @@
+
+
+
+
+100%|████████████████████████████████████████| 605M/605M [00:05<00:00, 106MiB/s]
+/tmp/ipykernel_46717/3062368095.py:10: DeprecationWarning: BICUBIC is deprecated and will be removed in Pillow 10 (2023-07-01). Use Resampling.BICUBIC instead.
+  T.RandomResizedCrop(n_px, scale=(0.9, 1.0), interpolation=Image.BICUBIC),
+/home/xiaoyuz1/anaconda3/envs/open_clip/lib/python3.10/site-packages/torchvision-0.12.0-py3.10-linux-x86_64.egg/torchvision/transforms/transforms.py:890: UserWarning: Argument interpolation should be of type InterpolationMode instead of int. Please, use InterpolationMode enum.
+  warnings.warn(
+Number of train batches:  122
+Number of train batches:  122
+Number of test batches:  16
+Number of test batches:  20
+Number of dev batches:  8
+Number of dev batches:  10
+/raid/xiaoyuz1/clip_model_checkpoint/helpful-bird-17.pt /raid/xiaoyuz1/clip_model_checkpoint/helpful-bird-17.pickle

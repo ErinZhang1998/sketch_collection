@@ -1,0 +1,85 @@
+wandb_version: 1
+
+BATCH_SIZE:
+  desc: null
+  value: 64
+BETAS:
+  desc: null
+  value:
+  - 0.9
+  - 0.98
+EPOCH:
+  desc: null
+  value: 100
+EPS:
+  desc: null
+  value: 1.0e-06
+EVAL_BATCH_SIZE:
+  desc: null
+  value: 32
+EVAL_EVERY:
+  desc: null
+  value: 50
+IMAGE_PATH_TEMPLATE:
+  desc: null
+  value:
+    angel: /raid/xiaoyuz1/sketch_datasets/angel_images_weight_5_all/{}.png
+    face: /raid/xiaoyuz1/sketch_datasets/face_images_weight_5_all/{}.png
+LR:
+  desc: null
+  value: 1.0e-05
+START_EPOCH:
+  desc: null
+  value: 0
+TEMPLATE:
+  desc: null
+  value: 0
+TEST_CATEGORY:
+  desc: null
+  value:
+  - face
+  - angel
+TRAIN_CATEGORY:
+  desc: null
+  value:
+  - face
+WEIGHT_DECAY:
+  desc: null
+  value: 0.001
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.12.14
+    framework: torch
+    is_jupyter_run: true
+    is_kaggle_kernel: false
+    python_version: 3.8.12
+    start_time: 1649814073
+    t:
+      1:
+      - 1
+      - 2
+      - 3
+      - 5
+      - 12
+      - 33
+      - 41
+      - 53
+      - 55
+      2:
+      - 1
+      - 2
+      - 3
+      - 5
+      - 12
+      - 33
+      - 41
+      - 53
+      - 55
+      3:
+      - 16
+      4: 3.8.12
+      5: 0.12.14
+      8:
+      - 1
+      - 5

@@ -1,0 +1,1251 @@
+2022-04-14 08:14:44,553 INFO    MainThread:67833 [internal.py:wandb_internal():92] W&B internal server running at pid: 67833, started at: 2022-04-14 08:14:44.553091
+2022-04-14 08:14:44,555 INFO    WriterThread:67833 [datastore.py:open_for_write():77] open: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/run-103fdkvi.wandb
+2022-04-14 08:14:44,557 DEBUG   SenderThread:67833 [sender.py:send():235] send: header
+2022-04-14 08:14:44,557 DEBUG   SenderThread:67833 [sender.py:send():235] send: run
+2022-04-14 08:14:44,703 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: check_version
+2022-04-14 08:14:44,706 INFO    SenderThread:67833 [dir_watcher.py:__init__():169] watching files in: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files
+2022-04-14 08:14:44,706 INFO    SenderThread:67833 [sender.py:_start_run_threads():812] run started: 103fdkvi with start time 1649938483
+2022-04-14 08:14:44,707 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:14:44,707 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:14:44,707 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: check_version
+2022-04-14 08:14:44,777 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: run_start
+2022-04-14 08:14:45,711 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_created():217] file/dir created: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:14:48,065 DEBUG   HandlerThread:67833 [meta.py:__init__():37] meta init
+2022-04-14 08:14:48,065 DEBUG   HandlerThread:67833 [meta.py:__init__():51] meta init done
+2022-04-14 08:14:48,066 DEBUG   HandlerThread:67833 [meta.py:probe():211] probe
+2022-04-14 08:14:48,076 DEBUG   HandlerThread:67833 [meta.py:_setup_git():201] setup git
+2022-04-14 08:14:48,122 DEBUG   HandlerThread:67833 [meta.py:_setup_git():208] setup git done
+2022-04-14 08:14:48,122 DEBUG   HandlerThread:67833 [meta.py:_save_pip():55] save pip
+2022-04-14 08:14:48,123 DEBUG   HandlerThread:67833 [meta.py:_save_pip():69] save pip done
+2022-04-14 08:14:48,123 DEBUG   HandlerThread:67833 [meta.py:_save_conda():76] save conda
+2022-04-14 08:14:48,796 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_created():217] file/dir created: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/requirements.txt
+2022-04-14 08:14:48,797 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_created():217] file/dir created: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/conda-environment.yaml
+2022-04-14 08:14:49,796 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_created():217] file/dir created: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/output.log
+2022-04-14 08:14:53,649 DEBUG   HandlerThread:67833 [meta.py:_save_conda():86] save conda done
+2022-04-14 08:14:53,650 DEBUG   HandlerThread:67833 [meta.py:probe():249] probe done
+2022-04-14 08:14:53,653 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:14:53,653 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:14:53,654 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:14:53,657 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:14:53,771 DEBUG   SenderThread:67833 [sender.py:send():235] send: telemetry
+2022-04-14 08:14:53,798 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/conda-environment.yaml
+2022-04-14 08:14:53,798 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_created():217] file/dir created: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-metadata.json
+2022-04-14 08:14:54,242 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:14:54,243 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:14:54,243 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:14:54,243 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:14:55,149 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:14:55,149 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:14:55,150 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:14:55,150 DEBUG   SenderThread:67833 [sender.py:send():235] send: config
+2022-04-14 08:14:55,150 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:14:56,718 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:14:56,718 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:14:56,719 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:14:56,719 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:14:57,754 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:14:57,754 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:14:57,754 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:14:57,754 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:14:58,721 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:14:58,721 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:14:58,721 DEBUG   SenderThread:67833 [sender.py:send():235] send: files
+2022-04-14 08:14:58,722 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-metadata.json with policy now
+2022-04-14 08:14:58,724 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:14:58,724 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:14:58,725 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:14:58,726 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:14:58,726 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:14:59,224 INFO    Thread-16 :67833 [upload_job.py:push():137] Uploaded file /tmp/tmpxvzavau_wandb/3n5irj4c-wandb-metadata.json
+2022-04-14 08:15:04,298 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:04,298 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:05,235 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:05,235 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:05,236 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:05,236 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:06,212 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:06,212 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:06,213 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:06,213 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:07,563 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:07,563 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:07,564 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:07,564 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:08,965 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:08,965 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:08,966 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:08,966 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:09,700 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:09,701 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:09,701 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:09,702 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:09,702 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:09,703 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:10,805 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/output.log
+2022-04-14 08:15:10,928 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:10,928 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:10,928 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:10,928 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:12,068 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:12,068 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:12,069 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:12,069 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:13,054 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:13,055 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:13,055 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:13,055 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:13,056 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:14,514 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:14,515 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:14,515 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:14,515 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:15,471 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:15,471 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:15,471 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:15,471 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:15,808 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/config.yaml
+2022-04-14 08:15:16,427 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:16,427 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:16,428 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:16,428 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:17,781 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:17,781 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:17,781 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:17,781 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:18,762 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:18,762 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:18,763 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:18,763 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:20,014 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:20,014 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:20,015 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:20,015 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:21,049 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:21,049 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:21,050 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:21,050 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:22,427 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:22,427 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:22,428 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:22,428 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:23,872 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:23,872 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:23,873 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:23,873 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:25,099 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:25,099 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:25,100 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:25,100 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:26,358 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:26,358 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:26,358 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:26,358 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:27,736 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:27,736 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:27,737 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: pause
+2022-04-14 08:15:27,737 INFO    HandlerThread:67833 [handler.py:handle_request_pause():679] stopping system metrics thread
+2022-04-14 08:15:28,760 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: resume
+2022-04-14 08:15:28,760 INFO    HandlerThread:67833 [handler.py:handle_request_resume():670] starting system metrics thread
+2022-04-14 08:15:28,760 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:15:28,760 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:15:28,764 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:15:28,773 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:15:28,874 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,874 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,875 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,877 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,877 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,878 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,879 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,879 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,880 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,880 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,881 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,882 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,882 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,883 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,884 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,884 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,885 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,885 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:15:28,886 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:15:44,018 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:15:44,021 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:15:50,419 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:15:54,083 DEBUG   SenderThread:67833 [sender.py:send():235] send: telemetry
+2022-04-14 08:15:54,084 DEBUG   SenderThread:67833 [sender.py:send():235] send: files
+2022-04-14 08:15:54,084 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file dainty-sponge-15_2.pt with policy live
+2022-04-14 08:15:54,827 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_created():217] file/dir created: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/dainty-sponge-15_2.pt
+2022-04-14 08:15:55,102 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:15:55,416 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:15:55,416 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:15:55,417 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:15:55,827 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:15:56,046 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:15:56,828 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/output.log
+2022-04-14 08:15:57,592 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:15:57,593 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:15:57,593 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:15:57,594 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:15:57,594 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:15:57,594 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:15:57,595 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:15:57,715 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:15:57,716 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:15:57,716 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:15:57,716 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:15:57,828 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:15:58,525 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:00,628 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:00,628 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:00,628 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:16:00,629 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:00,629 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:00,629 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:00,629 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:16:00,768 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:00,769 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:00,769 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:00,769 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:00,770 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:00,770 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:00,829 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:00,950 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:00,950 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:00,951 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:00,951 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:01,750 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:01,830 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:02,561 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:02,562 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:02,562 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:02,578 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:02,579 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:02,579 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:02,580 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:02,831 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:03,360 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:03,360 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:03,361 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:03,362 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:03,831 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:04,201 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:04,202 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:04,202 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:04,203 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:04,831 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:04,903 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:16:05,007 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:05,007 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:05,007 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:05,008 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:05,813 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:05,814 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:05,814 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:05,816 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:05,832 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:06,707 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:06,707 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:06,708 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:06,708 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:06,832 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:07,705 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:07,706 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:07,706 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:07,707 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:07,833 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:08,531 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:08,531 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:08,532 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:08,532 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:08,833 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:09,397 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:09,398 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:09,398 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:09,398 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:09,834 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:10,219 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:10,220 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:10,221 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:10,221 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:10,835 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:11,022 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:11,023 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:11,023 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:11,023 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:11,827 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:11,828 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:11,829 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:11,829 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:11,835 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:12,638 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:12,639 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:12,640 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:12,640 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:12,836 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:13,417 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:13,418 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:13,418 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:13,419 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:13,837 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:14,304 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:14,305 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:14,305 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:14,305 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:14,837 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:15,046 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:15,047 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:15,047 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:15,048 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:15,770 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:16:15,771 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:16:15,838 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:15,854 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:16,052 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:16,052 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:16,056 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:16,808 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:16,808 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:16,809 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:16,809 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:16,838 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/config.yaml
+2022-04-14 08:16:16,838 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:17,542 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:17,543 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:17,543 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:17,544 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:17,839 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:18,273 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:18,274 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:18,275 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:18,275 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:18,839 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:19,118 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:19,119 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:19,119 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:19,120 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:19,840 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:19,977 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:19,977 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:19,978 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:19,978 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:20,585 INFO    Thread-38 :67833 [upload_job.py:push():137] Uploaded file /tmp/tmpxvzavau_wandb/xp5lpmrm-dainty-sponge-15_2.pt
+2022-04-14 08:16:20,752 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:20,753 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:20,753 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:20,754 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:20,840 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:21,757 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:21,758 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:21,758 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:21,758 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:21,840 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:22,497 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:22,497 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:22,498 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:22,498 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:22,841 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:23,254 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:23,255 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:23,255 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:23,256 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:23,841 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:24,149 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:24,150 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:24,150 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:24,150 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:24,842 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:24,994 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:24,994 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:24,995 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:24,995 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:25,720 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:25,721 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:25,721 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:25,721 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:25,842 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:26,509 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:26,510 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:26,510 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:26,512 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:26,843 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:27,330 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:27,331 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:27,331 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:27,331 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:27,843 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:28,130 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:28,131 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:28,131 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:28,132 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:28,843 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:28,903 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:28,903 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:28,904 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:28,904 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:29,844 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:29,927 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:29,928 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:29,928 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:29,929 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:30,665 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:30,666 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:30,666 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:30,667 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:30,844 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:30,908 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:16:30,909 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:16:31,627 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:31,628 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:31,628 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:31,629 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:31,845 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:32,342 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:32,342 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:32,343 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:32,343 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:32,845 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:33,082 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:33,083 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:33,083 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:33,083 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:33,846 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:33,858 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:33,859 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:33,859 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:33,860 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:34,611 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:34,613 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:34,613 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:34,614 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:34,846 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:35,418 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:16:35,418 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:16:35,419 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:16:35,419 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:16:35,847 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:16:42,988 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:16:46,029 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:16:46,029 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:17:01,165 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:17:01,166 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:17:14,169 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:15,018 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:15,019 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:15,020 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:15,022 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:15,850 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:15,851 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:15,851 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:15,852 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:15,862 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:16,355 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:17:16,355 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:17:16,835 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:16,836 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:16,836 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:16,837 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:16,863 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:17,895 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:17,896 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:17,896 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:17,897 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:18,699 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:18,700 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:18,700 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:18,701 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:18,864 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:19,552 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:19,553 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:19,553 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:19,553 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:19,864 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:20,322 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:20,322 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:20,323 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:20,323 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:20,864 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:20,996 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:20,996 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:20,997 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:20,997 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:21,753 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:21,754 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:21,754 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:21,754 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:21,865 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:22,401 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:17:22,547 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:22,548 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:22,548 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:22,548 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:22,865 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:23,360 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:23,360 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:23,361 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:23,361 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:23,867 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:24,305 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:24,306 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:24,306 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:24,306 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:24,868 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:25,076 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:25,077 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:25,077 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:25,080 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:25,868 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:25,885 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:25,885 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:25,886 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:25,886 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:26,738 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:26,739 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:26,739 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:26,739 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:26,869 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:27,544 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:27,545 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:27,545 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:27,545 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:27,869 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:28,341 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:28,342 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:28,343 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:28,343 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:28,870 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:29,207 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:29,207 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:29,208 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:29,208 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:29,870 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:29,954 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:29,955 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:29,955 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:29,955 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:30,739 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:30,740 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:30,740 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:30,741 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:30,871 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:31,469 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:17:31,470 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:17:31,591 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:31,592 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:31,592 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:31,593 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:31,871 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:32,417 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:32,419 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:32,419 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:32,419 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:32,872 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:33,213 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:33,214 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:33,214 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:33,214 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:33,872 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:34,150 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:34,151 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:34,151 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:34,152 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:34,873 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:34,965 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:34,966 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:34,966 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:34,966 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:35,811 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:35,811 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:35,811 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:35,815 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:35,873 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:36,615 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:36,616 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:36,616 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:36,617 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:36,874 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:37,412 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:37,412 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:37,413 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:37,413 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:37,874 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:38,419 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:38,419 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:38,420 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:38,420 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:38,875 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:39,157 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:39,158 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:39,159 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:39,159 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:39,875 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:39,900 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:39,901 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:39,901 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:39,901 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:40,693 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:40,694 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:40,694 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:40,695 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:40,876 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:41,599 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:41,599 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:41,600 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:41,600 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:41,876 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:42,383 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:42,384 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:42,384 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:42,384 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:42,877 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:43,148 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:43,149 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:43,149 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:43,149 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:43,877 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:44,057 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:44,058 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:44,058 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:44,058 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:44,871 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:44,872 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:44,872 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:44,872 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:44,878 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:45,666 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:45,667 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:45,667 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:45,667 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:45,878 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:46,501 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:46,502 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:46,502 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:46,504 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:46,576 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:17:46,577 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:17:46,878 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:47,226 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:47,227 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:47,227 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:47,228 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:47,879 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:48,006 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:48,007 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:48,007 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:48,007 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:48,835 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:48,835 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:48,835 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:48,836 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:48,879 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:49,621 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:49,621 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:49,622 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:49,622 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:49,880 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:50,536 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:50,537 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:50,537 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:50,537 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:50,880 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:51,347 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:51,348 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:51,348 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:51,348 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:51,881 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:52,131 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:52,131 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:52,132 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:52,132 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:52,881 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:52,915 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:52,916 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:52,916 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:52,916 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:53,711 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:53,711 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:53,712 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:53,712 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:53,881 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:54,459 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:54,460 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:54,460 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:54,461 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:54,882 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:17:55,242 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:17:55,243 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:17:55,243 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:17:55,243 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:17:55,882 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:00,400 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:18:01,698 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:18:01,698 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:18:16,828 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:18:16,829 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:18:31,947 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:18:31,947 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:18:32,290 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:33,044 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:33,045 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:33,045 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:33,047 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:33,824 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:33,825 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:33,825 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:33,826 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:33,902 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:34,555 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:34,556 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:34,556 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:34,556 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:34,900 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:35,307 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:35,307 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:35,307 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:35,308 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:35,901 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:36,076 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:36,077 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:36,077 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:36,077 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:36,901 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:36,932 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:36,933 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:36,934 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:36,934 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:37,724 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:37,725 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:37,725 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:37,725 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:37,902 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:38,544 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:38,545 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:38,545 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:38,546 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:38,902 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:39,397 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:39,398 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:39,398 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:39,399 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:39,510 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:18:39,902 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:40,199 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:40,200 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:40,200 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:40,200 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:40,903 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:41,166 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:41,167 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:41,167 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:41,167 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:41,903 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:42,046 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:42,046 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:42,047 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:42,047 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:42,904 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:43,015 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:43,016 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:43,016 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:43,017 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:43,826 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:43,827 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:43,827 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:43,830 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:43,904 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:44,652 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:44,653 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:44,653 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:44,654 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:44,905 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:45,572 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:45,573 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:45,573 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:45,573 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:45,905 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:46,514 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:46,514 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:46,514 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:46,515 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:46,906 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:47,069 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:18:47,069 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:18:47,309 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:47,309 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:47,310 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:47,310 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:47,906 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:48,217 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:48,219 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:48,219 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:48,219 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:48,907 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:49,042 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:49,043 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:49,043 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:49,044 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:49,839 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:49,839 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:49,839 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:49,840 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:49,907 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:50,643 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:50,644 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:50,644 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:50,645 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:50,907 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:51,439 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:51,439 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:51,440 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:51,440 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:51,908 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:52,130 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:52,131 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:52,131 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:52,131 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:52,880 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:52,880 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:52,880 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:52,881 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:52,908 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:53,663 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:53,663 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:53,664 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:53,664 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:53,909 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:54,508 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:54,509 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:54,509 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:54,512 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:54,909 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:55,408 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:55,409 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:55,409 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:55,410 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:55,909 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:56,153 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:56,154 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:56,155 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:56,155 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:56,910 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:56,937 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:56,938 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:56,938 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:56,939 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:57,808 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:57,809 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:57,809 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:57,809 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:57,910 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:58,618 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:58,619 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:58,619 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:58,619 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:58,911 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:18:59,420 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:18:59,421 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:18:59,421 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:18:59,421 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:18:59,911 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:00,238 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:00,238 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:00,239 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:00,239 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:00,912 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:01,062 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:01,062 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:01,063 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:01,063 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:01,831 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:01,832 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:01,832 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:01,832 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:01,912 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:02,177 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:19:02,177 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:19:02,669 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:02,670 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:02,670 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:02,670 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:02,912 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:03,459 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:03,460 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:03,460 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:03,460 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:03,913 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:04,179 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:04,180 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:04,181 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:04,181 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:04,913 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:04,995 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:04,996 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:04,996 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:04,998 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:05,830 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:05,831 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:05,831 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:05,832 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:05,914 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:06,552 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:06,553 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:06,553 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:06,553 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:06,914 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:07,353 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:07,354 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:07,354 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:07,354 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:07,915 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:08,132 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:08,133 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:08,133 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:08,134 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:08,911 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:08,912 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:08,912 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:08,912 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:08,915 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:09,688 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:09,689 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:09,689 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:09,689 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:09,916 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:10,506 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:10,507 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:10,507 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:10,508 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:10,916 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:11,452 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:11,453 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:11,453 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:11,454 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:11,917 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:12,492 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:12,493 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:12,493 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:12,494 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:12,917 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:13,651 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:13,651 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:13,652 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:13,652 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:13,918 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:17,512 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:19:17,538 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:19:17,538 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:19:32,659 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:19:32,659 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:19:47,772 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:19:47,772 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:19:50,532 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:51,250 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:51,251 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:51,252 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:51,254 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:51,933 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:52,237 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:52,238 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:52,238 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:52,238 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:52,933 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:53,018 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:53,019 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:53,019 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:53,020 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:53,724 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:53,725 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:53,725 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:53,726 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:53,934 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:54,588 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:54,588 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:54,589 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:54,589 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:54,934 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:55,309 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:55,310 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:55,310 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:55,311 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:55,799 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:19:55,935 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:56,035 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:56,036 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:56,036 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:56,037 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:56,818 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:56,819 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:56,819 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:56,820 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:56,935 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:57,606 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:57,607 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:57,607 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:57,607 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:57,935 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:58,442 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:58,443 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:58,443 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:58,444 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:58,936 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:19:59,540 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:19:59,540 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:19:59,541 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:19:59,541 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:19:59,936 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:00,356 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:00,357 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:00,358 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:00,358 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:00,937 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:01,105 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:01,106 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:01,106 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:01,107 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:01,937 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:02,052 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:02,053 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:02,053 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:02,054 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:02,890 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:20:02,891 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:20:02,937 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:02,985 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:03,325 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:03,326 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:03,327 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:03,736 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:03,737 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:03,737 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:03,737 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:03,938 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:04,459 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:04,460 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:04,460 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:04,460 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:04,938 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:05,207 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:05,208 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:05,208 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:05,208 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:05,939 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:06,014 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:06,014 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:06,015 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:06,015 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:06,830 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:06,831 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:06,832 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:06,832 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:06,939 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:07,669 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:07,670 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:07,670 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:07,671 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:07,940 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:08,498 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:08,498 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:08,499 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:08,499 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:08,940 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:09,373 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:09,373 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:09,373 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:09,374 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:09,940 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:10,230 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:10,231 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:10,231 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:10,231 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:10,941 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:10,986 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:10,987 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:10,987 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:10,988 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:11,852 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:11,852 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:11,852 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:11,853 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:11,941 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:12,620 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:12,620 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:12,621 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:12,621 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:12,942 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:13,401 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:13,401 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:13,402 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:13,402 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:13,942 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:14,453 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:14,454 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:14,454 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:14,455 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:14,943 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:15,338 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:15,339 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:15,339 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:15,340 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:15,943 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:16,106 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:16,106 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:16,107 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:16,107 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:16,944 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:17,065 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:17,065 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:17,065 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:17,066 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:17,845 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:17,846 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:17,846 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:17,847 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:17,944 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:18,327 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:20:18,327 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:20:18,647 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:18,647 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:18,648 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:18,648 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:18,944 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:19,418 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:19,418 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:19,418 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:19,419 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:19,945 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:20,161 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:20,162 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:20,162 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:20,163 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:20,920 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:20,921 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:20,921 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:20,922 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:20,945 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:21,778 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:21,779 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:21,779 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:21,781 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:21,946 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:22,556 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:22,556 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:22,557 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:22,557 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:22,946 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:23,329 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:23,330 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:23,330 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:23,331 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:23,947 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:24,321 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:24,322 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:24,322 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:24,323 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:24,949 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:25,047 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:25,048 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:25,049 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:25,049 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:25,837 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:25,838 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:25,838 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:25,839 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:25,948 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:26,998 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:26,999 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:26,999 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:27,000 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:27,871 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:27,872 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:27,873 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:27,873 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:27,948 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:28,838 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:28,839 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:28,839 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:28,840 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:28,949 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:29,577 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:29,578 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:29,578 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:29,579 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:29,950 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:30,370 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:30,371 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:30,372 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:30,372 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:30,951 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:31,273 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:31,274 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:31,274 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:31,275 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:31,951 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:32,081 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:20:32,081 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:20:32,082 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:20:32,082 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:20:32,951 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:20:33,384 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:20:33,440 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:20:33,440 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:20:48,557 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:20:48,557 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:21:03,677 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:21:03,677 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:21:10,390 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:11,086 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:11,087 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:11,088 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:11,088 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:11,745 DEBUG   SenderThread:67833 [sender.py:send():235] send: stats
+2022-04-14 08:21:11,966 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:21:12,025 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:12,026 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:12,026 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:12,026 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:12,803 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:12,803 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:12,804 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:12,804 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:12,967 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:21:13,518 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:13,519 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:13,519 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:13,520 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:13,967 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:21:14,746 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:14,747 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:14,747 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:14,748 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:14,968 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:21:15,620 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:15,621 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:15,621 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:15,621 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:15,968 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:21:16,466 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:16,467 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:16,467 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:16,468 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:16,968 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:21:17,250 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:17,251 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:17,251 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:17,252 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:17,969 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:21:18,011 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:18,011 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:18,012 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:18,012 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:18,789 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-14 08:21:18,790 DEBUG   SenderThread:67833 [sender.py:send_request():249] send_request: stop_status
+2022-04-14 08:21:18,969 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json
+2022-04-14 08:21:18,976 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:18,977 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:18,977 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:18,977 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:19,830 DEBUG   HandlerThread:67833 [handler.py:handle_request():141] handle_request: partial_history
+2022-04-14 08:21:19,831 DEBUG   SenderThread:67833 [sender.py:send():235] send: history
+2022-04-14 08:21:19,831 DEBUG   SenderThread:67833 [sender.py:send():235] send: summary
+2022-04-14 08:21:19,832 INFO    SenderThread:67833 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-14 08:21:19,970 INFO    Thread-7  :67833 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/xiaoyuz1/amazon_turk/wandb/run-20220414_081443-103fdkvi/files/wandb-summary.json

@@ -1,0 +1,6 @@
+Number of train batches:  55
+Number of test batches:  16
+Number of test batches:  20
+Number of dev batches:  8
+Number of dev batches:  10
+/raid/xiaoyuz1/clip_model_checkpoint/dainty-sponge-15_2.pt /raid/xiaoyuz1/clip_model_checkpoint/dainty-sponge-15_2.pickle

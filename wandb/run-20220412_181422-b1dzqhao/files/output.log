@@ -1,0 +1,9 @@
+/home/xiaoyuz1/anaconda3/envs/clipdraw/lib/python3.8/site-packages/IPython/core/display.py:717: UserWarning: Consider using IPython.display.IFrame instead
+  warnings.warn("Consider using IPython.display.IFrame instead")
+Final TRAIN: acc=0.650
+Final DEV: face acc=0.624
+Final DEV: angel acc=0.621
+Final TEST: face acc=0.627
+Final TEST: angel acc=0.624
+/raid/xiaoyuz1/clip_model_checkpoint/all/atomic-meadow-1_100.pt
+/raid/xiaoyuz1/clip_model_checkpoint/all/atomic-meadow-1.pt

@@ -14,16 +14,29 @@ import os
 import cv2
 import pdb
 import PIL.ImageOps
-import collections
+import itertools, collections
 import constants as CONST
 from scipy.spatial import distance
 import base64
+import torch
+
+def find_one(df, t1, k1):
+    v1 = df[k1].apply(lambda x : t1 in x)
 
 
+    return df[v1]
+
+def find_pair(df, t1, t2, k1, k2):
+    v1 = df[k1].apply(lambda x : t1 in x)
+    v2 = df[k2].apply(lambda x : t2 in x)
+    v3 = df[k1].apply(lambda x : t2 in x)
+    v4 = df[k2].apply(lambda x : t1 in x)
+
+    return df[(v1 & v2) | (v3 & v4)]
 
 # This is wrote to pair up images to show to the turkers
 # want to pair images that are as dissimilar as possible
-def get_pair(image_list, image_feature_dict):
+def get_pair(image_list, image_feature_dict, rank = 0):
     v = image_list
 
     pair = []
@@ -35,7 +48,7 @@ def get_pair(image_list, image_feature_dict):
         not_taken.remove(p1)
         dist = []
 
-        if len(not_taken) == 0:
+        if len(not_taken) <= rank:
             for p2 in v:
                 d = distance.cosine(image_feature_dict[p1], image_feature_dict[p2])
                 dist.append((p2, d))
@@ -44,9 +57,10 @@ def get_pair(image_list, image_feature_dict):
                 d = distance.cosine(image_feature_dict[p1], image_feature_dict[p2])
                 dist.append((p2, d))
 
-        dist = sorted(dist, key=lambda x: x[1])
-        p2,d = dist[-1]
-        if len(not_taken) == 0:
+        dist = sorted(dist, key=lambda x: x[1])[::-1]
+        rand_idx = np.random.choice(np.arange(min(5,len(dist))), 1)[0]
+        p2,d = dist[rand_idx]
+        if len(not_taken) <= rank:
             print(p1,p2)
         else:
             not_taken.remove(p2)
@@ -154,6 +168,7 @@ def render_img(
     bg_color=(0,0,0),
     fg_color=(1,1,1),
     original_side = 256.,
+    convert = True,
 ):
 
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, side, side)
@@ -183,9 +198,13 @@ def render_img(
             ctx.line_to(x, y)
         ctx.stroke()
     surface_data = surface.get_data()
-    raster_image = np.copy(np.asarray(surface_data))[::4].reshape(side, side)
-    image = PIL.Image.fromarray(raster_image).convert("L")
-    image = PIL.ImageOps.invert(image)
+    image = np.copy(np.asarray(surface_data))[::4].reshape(side, side)
+    image = PIL.Image.fromarray(image).convert("L")
+    if convert:
+        #image = PIL.Image.fromarray(image).convert("L")
+        image = PIL.ImageOps.invert(image)
+    # else:
+    #     return torch.FloatTensor(image/255.)[None, :, :]
     if img_path is not None:
         image.save(img_path)
     if show:
@@ -415,41 +434,48 @@ def get_base64_data(png_to_drawing_dict, selected_pairs, low, high, category_nam
         base64_data.append(str(encoded)[2:-1])
     return base64_data
 
+result_folders = [
+    '/raid/xiaoyuz1/amazon_turk/2022_03_17_release',# no.0
+    '/raid/xiaoyuz1/amazon_turk/2022_03_21_release', # no.1
+    '/raid/xiaoyuz1/amazon_turk/2022_03_22_release', # no.2
+    '/raid/xiaoyuz1/amazon_turk/2022_03_23_release', # no.3
+    '/raid/xiaoyuz1/amazon_turk/2022_03_23_release_2', # no.4
+    '/raid/xiaoyuz1/amazon_turk/2022_03_24_release', # no.5
+    '/raid/xiaoyuz1/amazon_turk/2022_03_24_release_2', # no.6
+    '/raid/xiaoyuz1/amazon_turk/2022_04_04_release', # no.7
+    '/raid/xiaoyuz1/amazon_turk/2022_04_04_release_2', # no.8
+    '/raid/xiaoyuz1/amazon_turk/2022_04_05_release', # no.9
+    '/raid/xiaoyuz1/amazon_turk/2022_04_06_release', # no.10
+    '/raid/xiaoyuz1/amazon_turk/2022_04_06_release_2', # no.11
+    '/raid/xiaoyuz1/amazon_turk/2022_04_06_release_3', # no.12
+]
+
+result_csv_files = [
+    'Batch_4693878_batch_results.csv',# no.0
+    'Batch_4696268_batch_results.csv',# no.1
+    'Batch_4697008_batch_results.csv',# no.2
+    'Batch_4697913_batch_results.csv',# no.3
+    'Batch_4698198_batch_results.csv',# no.4
+    'Batch_4698860_batch_results.csv',# no.5
+    'Batch_4699064_batch_results.csv',# no.6
+    'Batch_4706822_batch_results.csv',# no.7
+    'Batch_4707033_batch_results.csv',# no.8
+    'Batch_4707866_batch_results.csv',# no.9
+    'Batch_4708689_batch_results.csv',# no.10
+    'Batch_4708952_batch_results.csv',# no.11
+    'Batch_4709244_batch_results.csv',# no.12
+]
+selected_pairss = [
+    np.load('/raid/xiaoyuz1/amazon_turk/2022_03_17_release/png_list.npy'),
+    np.load('/raid/xiaoyuz1/amazon_turk/2022_03_21_release/png_list.npy'),
+    np.load('/raid/xiaoyuz1/amazon_turk/2022_04_04_release/png_list.npy'),
+    np.load('/raid/xiaoyuz1/amazon_turk/2022_04_06_release/png_list.npy'),
+]
 
 def compile_face_dfs():
-    result_folders = [
-        '/raid/xiaoyuz1/amazon_turk/2022_03_17_release', # 100
-        '/raid/xiaoyuz1/amazon_turk/2022_03_21_release', # no.1
-        '/raid/xiaoyuz1/amazon_turk/2022_03_22_release', # no.2
-        '/raid/xiaoyuz1/amazon_turk/2022_03_23_release', # no.3
-        '/raid/xiaoyuz1/amazon_turk/2022_03_23_release_2', # no.4
-        '/raid/xiaoyuz1/amazon_turk/2022_03_24_release', # no.5
-        '/raid/xiaoyuz1/amazon_turk/2022_03_24_release_2', # no.6
-        '/raid/xiaoyuz1/amazon_turk/2022_04_04_release', # no.7
-        '/raid/xiaoyuz1/amazon_turk/2022_04_04_release_2' # no.8
-        '/raid/xiaoyuz1/amazon_turk/2022_04_05_release', # no.9
-    ]
-
-    result_csv_files = [
-        'Batch_4693878_batch_results.csv',
-        'Batch_4696268_batch_results.csv', # no.1
-        'Batch_4697008_batch_results.csv',# no.2
-        'Batch_4697913_batch_results.csv',# no.3
-        'Batch_4698198_batch_results.csv',# no.4
-        'Batch_4698860_batch_results.csv',# no.5
-        'Batch_4699064_batch_results.csv',# no.6
-        'Batch_4706822_batch_results.csv',# no.7
-        'Batch_4707033_batch_results.csv',# no.8
-        'Batch_4707866_batch_results.csv',# no.9
-    ]
-
+    
     dfs = []
-    selected_pairss = [
-        np.load('/raid/xiaoyuz1/amazon_turk/2022_03_17_release/png_list.npy'),
-        np.load('/raid/xiaoyuz1/amazon_turk/2022_03_21_release/png_list.npy'),
-        np.load('/raid/xiaoyuz1/amazon_turk/2022_04_04_release/png_list.npy'),
-        np.load('/raid/xiaoyuz1/amazon_turk/2022_04_05_release/png_list.npy'),
-    ]
+    
     df_inputs = []
 
     for i,(result_folder,csv_file) in enumerate(zip(result_folders, result_csv_files)):
@@ -482,6 +508,10 @@ def compile_face_dfs():
             
             if j == 10:
                 task_idx += 50
+            if j == 11:
+                task_idx += 250
+            if j == 12:
+                task_idx += 450
                 
             if j == 0:
                 df_idx_to_task_idx[i] = selected_pairss[0][task_idx*5:(task_idx+1) * 5]
@@ -503,8 +533,9 @@ def new_df_pair(dfs, df_idx_to_task_idxs, skip=[]):
         'image_2': [],
         'worker_id': [],
         'part': [],
-        #'cluster_1': [],
-        #'cluster_2': [],
+        'category' : [],
+        'time': [],
+        'folder' : [],
         'text_1': [],
         'text_2': [],
     }
@@ -524,15 +555,18 @@ def new_df_pair(dfs, df_idx_to_task_idxs, skip=[]):
                 k2 = "Answer.inputAnnotationName_{}-{}__{}".format(anno_idx, part_idx, 2)
                 
                 try:
-                
-                    #c1 = img_to_part_cluster[(img1, part_idx)]
-                    #c2 = img_to_part_cluster[(img2, part_idx)]
                     data['image_1'].append(img1)
                     data['image_2'].append(img2)
                     data['worker_id'].append(row['WorkerId'])
                     data['part'].append(part_idx)
-                    #data['cluster_1'].append(c1)
-                    #data['cluster_2'].append(c2)
+                    data['time'].append(row['WorkTimeInSeconds']/5)
+                    data['folder'].append(result_folders[j])
+                    # !!!!!!!!!!!!!! HARDCODE !!!!!!!!!!!!!!
+                    if j < 9:
+                        data['category'].append("face")
+                    else:
+                        data['category'].append("angel")
+                    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     data['text_1'].append(row[k1])
                     data['text_2'].append(row[k2])
                 except:
@@ -540,6 +574,163 @@ def new_df_pair(dfs, df_idx_to_task_idxs, skip=[]):
     dfn = pd.DataFrame.from_dict(data)
     return dfn
 
+
+def new_df(dfs, df_idx_to_task_idxs, skip=[]):
+    data = {
+        'image_1': [],
+        'worker_id': [],
+        'part': [],
+        'category' : [],
+        'time': [],
+        'folder' : [],
+        'text_1': [],
+    }
+    
+    problematic = []
+    for j in range(len(dfs)):
+        if j in skip:
+            continue
+        df = dfs[j]
+        df_idx_to_task_idx = df_idx_to_task_idxs[j].astype(int)
+        for i in range(len(df)):
+            row = df.iloc[i]
+            one_hit = df_idx_to_task_idx[i]
+            for anno_idx,(img1,img2,part_idx) in zip(range(1, 6),one_hit):
+
+                for ii,img in enumerate([img1,img2]):
+                    k = "Answer.inputAnnotationName_{}-{}__{}".format(anno_idx, part_idx, ii+1)
+                    try:
+                        data['image_1'].append(img)
+                        data['part'].append(part_idx)
+                        data['worker_id'].append(row['WorkerId'])
+                        data['time'].append(row['WorkTimeInSeconds']/5)
+                        data['folder'].append(result_folders[j])
+                        # !!!!!!!!!!!!!! HARDCODE !!!!!!!!!!!!!!
+                        if j < 9:
+                            data['category'].append("face")
+                        else:
+                            data['category'].append("angel")
+                        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        data['text_1'].append(row[k])
+                    except:
+                        problematic.append((img,part_idx))
+
+    dfn = pd.DataFrame.from_dict(data)
+    return dfn
+
+
+class Pair(object):
+    def __init__(self, p):
+        self.x, self.y = p[0],p[1]
+        self.other = p[2:]
+
+    def __eq__(self, other):
+        return (self.x == other.x and self.y == other.y) or \
+        (self.x == other.y and self.y == other.x)
+
+    def __hash__(self):
+        return hash(self.x) + hash(self.y)
+
+def all_pair_together(dfn, wrong_rows = []):
+    all_pair_obj = []
+    for row_idx in range(len(dfn)):
+        row = dfn.iloc[row_idx]
+        l1 = row['no_punc_1']
+        l2 = row['no_punc_2']
+        
+        for x,y in list(itertools.product(l1,l1)):
+            if x != y:
+                all_pair_obj.append(Pair([x,y, 1, row_idx]))
+        for x,y in list(itertools.product(l2,l2)):
+            if x != y:
+                all_pair_obj.append(Pair([x,y, 1, row_idx]))
+        
+            
+    all_pair_correct = collections.defaultdict(list)
+    all_pair_rows = collections.defaultdict(list)
+
+    for k in all_pair_obj:
+        w1,w2,other = k.x, k.y, k.other
+        all_pair_correct[Pair([w1,w2,-1])].append(other[0])
+        all_pair_rows[Pair([w1,w2,-1])].append(other[1])
+    
+    all_pair_counter =  collections.defaultdict(int)
+    for k, L in all_pair_correct.items():
+        all_pair_counter[k] = len(L)
+    
+    ks = list(all_pair_counter.keys())
+    vs = list(all_pair_counter.values())
+
+    ks_sorted = [x for x,_ in sorted(zip(ks, vs), key=lambda pair: pair[1])]
+
+    data = []
+    for obj in ks_sorted[::-1]:
+        L = np.asarray(all_pair_correct[obj])
+        rowsL = np.asarray(all_pair_rows[obj])
+        total = len(L)
+        if total < 1:
+            continue
+        correct = np.sum(L > 0)
+        incorrect = np.sum(L < 1)
+        
+        data.append([obj.x, obj.y, total, correct, correct / total, rowsL[L > 0], rowsL[L < 1]])
+
+    all_pair_df = pd.DataFrame.from_dict(
+        dict(zip(range(len(data)), data)), 
+        orient='index', 
+        columns=['word1', 'word2', 'total_occurrence', 'correct#', 'correct%', 'correct_row_idx', 'incorrect_row_idx'],
+    )
+    return all_pair_df
+
+def all_pair_combination(dfn, wrong_rows = []):
+    all_pair_obj = []
+    for row_idx in range(len(dfn)):
+        row = dfn.iloc[row_idx]
+        l1 = row['no_punc_1']
+        l2 = row['no_punc_2']
+        
+        for x,y in list(itertools.product(l1,l2)):
+            if x != y or (x == y and len(l1) == len(l2) == 1):
+                if row_idx in wrong_rows:
+                    all_pair_obj.append(Pair([x,y, 0, row_idx]))
+                else:
+                    all_pair_obj.append(Pair([x,y, 1, row_idx]))
+            
+    all_pair_correct = collections.defaultdict(list)
+    all_pair_rows = collections.defaultdict(list)
+
+    for k in all_pair_obj:
+        w1,w2,other = k.x, k.y, k.other
+        all_pair_correct[Pair([w1,w2,-1])].append(other[0])
+        all_pair_rows[Pair([w1,w2,-1])].append(other[1])
+    
+    all_pair_counter =  collections.defaultdict(int)
+    for k, L in all_pair_correct.items():
+        all_pair_counter[k] = len(L)
+    
+    ks = list(all_pair_counter.keys())
+    vs = list(all_pair_counter.values())
+
+    ks_sorted = [x for x,_ in sorted(zip(ks, vs), key=lambda pair: pair[1])]
+
+    data = []
+    for obj in ks_sorted[::-1]:
+        L = np.asarray(all_pair_correct[obj])
+        rowsL = np.asarray(all_pair_rows[obj])
+        total = len(L)
+        if total < 1:
+            continue
+        correct = np.sum(L > 0)
+        incorrect = np.sum(L < 1)
+        
+        data.append([obj.x, obj.y, total, correct, correct / total, rowsL[L > 0], rowsL[L < 1]])
+
+    all_pair_df = pd.DataFrame.from_dict(
+        dict(zip(range(len(data)), data)), 
+        orient='index', 
+        columns=['word1', 'word2', 'total_occurrence', 'correct#', 'correct%', 'correct_row_idx', 'incorrect_row_idx'],
+    )
+    return all_pair_df
 
 # ------------------------------------------------------------------------------------------------
 def get_img(img_path):

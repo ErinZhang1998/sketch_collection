@@ -1,0 +1,27 @@
+
+jumping-dawn-31
+Number of test batches:  16
+Number of test batches:  20
+Number of dev batches:  8
+Number of dev batches:  10
+Number of train batches:  28
+False
+/raid/xiaoyuz1/clip_model_checkpoint/jumping-dawn-31.pt /raid/xiaoyuz1/clip_model_checkpoint/jumping-dawn-31.pickle
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+74 2076
+/raid/xiaoyuz1/clip_model_checkpoint/jumping-dawn-31.pt /raid/xiaoyuz1/clip_model_checkpoint/jumping-dawn-31.pickle
+False
+Final TRAIN: acc=0.997
+Final TEST: face acc=0.695
+Final TEST: angel acc=0.586
+Final DEV: face acc=0.733
+Final DEV: angel acc=0.547
+Saving test results to:  /raid/xiaoyuz1/clip_model_checkpoint/jumping-dawn-31.pickle

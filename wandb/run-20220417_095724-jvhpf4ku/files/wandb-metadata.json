@@ -1,0 +1,26 @@
+{
+    "os": "Linux-4.15.0-135-generic-x86_64-with-glibc2.17",
+    "python": "3.8.12",
+    "heartbeatAt": "2022-04-17T13:57:31.557060",
+    "startedAt": "2022-04-17T13:57:24.810930",
+    "docker": null,
+    "gpu": "Tesla V100-SXM2-32GB-LS",
+    "gpu_count": 8,
+    "cpu_count": 80,
+    "cuda": "10.0.130",
+    "args": [
+        "-f",
+        "/home/xiaoyuz1/.local/share/jupyter/runtime/kernel-428e59f4-a44a-4f44-ab98-0aef8f877ae4.json"
+    ],
+    "state": "running",
+    "program": "<python with no main file>",
+    "git": {
+        "remote": "git@github.com:ErinZhang1998/sketch_collection.git",
+        "commit": "2daf73a668f1e7cf9c646e3a58038c950647ed56"
+    },
+    "email": "xiaoyuz1@andrew.cmu.edu",
+    "root": "/home/xiaoyuz1/amazon_turk",
+    "host": "iam-ironheart",
+    "username": "xiaoyuz1",
+    "executable": "/home/xiaoyuz1/anaconda3/envs/clipdraw/bin/python"
+}
