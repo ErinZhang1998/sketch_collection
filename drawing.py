@@ -197,8 +197,11 @@ class Drawing:
     def draw(self, data_idx, text_part = None):
         print("Index in dataframe: ", self.data[data_idx]['df_index'])
         print("Canvas ID: ", self.data[data_idx]['canvas_id'])
+        
+
         datai = self.data[data_idx]['data']
         prompt = self.data[data_idx]['prompt']
+        print(data_idx, prompt)
 
         hue_palette = sns.color_palette("husl", 20)
         total_steps = len(datai)
@@ -206,8 +209,9 @@ class Drawing:
         num_plots_per_row = 3
         num_rows = int(np.ceil(total_steps / num_plots_per_row))
         plot_idx_acc = 1
-        plt.figure(figsize=(num_plots_per_row * 5, num_rows * 5,))
+        plt.figure(figsize=(num_plots_per_row * 10, num_rows * 10,))
         
+        all_texts = []
         components_accumatlor = []
         if text_part is not None:
             skip_whole = True
@@ -223,12 +227,13 @@ class Drawing:
         for dataij in datai:
             
             text = dataij['annotation']
+            all_texts.append(" ".join(text))
             # if text_part is not None:
             #     if text_part not in text:
                     
             #         continue
             
-            plt.subplot(num_rows, num_plots_per_row , plot_idx_acc)
+            ax = plt.subplot(num_rows, num_plots_per_row , plot_idx_acc)
             plt.xlim(0,400)
             plt.ylim(400,0)
 
@@ -239,10 +244,15 @@ class Drawing:
                 part_xy_i = np.asarray(part_xy_i)
                 plt.plot(part_xy_i[:,0], part_xy_i[:,1], c=(0,0,0)) #hue_palette[plot_idx_acc]
 
-            plt.annotate(text, xy=(0,0), backgroundcolor='w', fontsize=9)
+            # plt.annotate(text, xy=(0,0), backgroundcolor='w', fontsize=40)
             plot_idx_acc += 1
+            ax.axis('off')
         
-        plt.title("{} {}".format(data_idx, prompt))
+        # plt.title("{} {}".format(data_idx, prompt))
+        plt.subplots_adjust(wspace=0, hspace=0)
         plt.show()
+        for t in all_texts:
+            print(t)
+        # print(all_texts)
 
 

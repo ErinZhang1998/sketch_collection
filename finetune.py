@@ -235,7 +235,7 @@ def cosine_sim(t1,t2,model,device):
         word_feat2 = word_feat2 / word_feat2.norm(dim=-1, keepdim=True)
     return (word_feat1@word_feat2.T).cpu().item()
 
-def calculate_word_similarity_clip(df, model, device, size = 100, column_name="cosine_sim_clip"):
+def calculate_word_similarity_clip(df, model, device, size = 100, column_name="cosine_sim_clip", cosine_sim = True):
     model.eval()
 
     word1s = df['word1'].tolist()
@@ -257,8 +257,9 @@ def calculate_word_similarity_clip(df, model, device, size = 100, column_name="c
             
             word_feat1 = model.encode_text(torch.cat([clip.tokenize(texts1).cuda(device)]))
             word_feat2 = model.encode_text(torch.cat([clip.tokenize(texts2).cuda(device)]))
-            word_feat1 = word_feat1 / word_feat1.norm(dim=-1, keepdim=True)
-            word_feat2 = word_feat2 / word_feat2.norm(dim=-1, keepdim=True)
+            if cosine_sim:
+                word_feat1 = word_feat1 / word_feat1.norm(dim=-1, keepdim=True)
+                word_feat2 = word_feat2 / word_feat2.norm(dim=-1, keepdim=True)
             word_feat1s.append(word_feat1.cpu())
             word_feat2s.append(word_feat2.cpu())
     
@@ -271,8 +272,8 @@ def calculate_word_similarity_clip(df, model, device, size = 100, column_name="c
     df[column_name] = cos_sims
     return df
 
-def calculate_word_similarity_bert(df, model, tokenizer, device, size = 100, column_name="cosine_sim_bert"):
-    # model.eval()
+def calculate_word_similarity_bert(df, model, tokenizer, device, size = 100, column_name="cosine_sim_bert", cosine_sim = True):
+    model.eval()
 
     word1s = df['word1'].tolist()
     word2s = df['word2'].tolist()
@@ -294,9 +295,10 @@ def calculate_word_similarity_bert(df, model, tokenizer, device, size = 100, col
             encoded_input2 = tokenizer(texts2, return_tensors='pt',padding=True).to(device)
             word_feat1 = model(**encoded_input1).pooler_output
             word_feat2 = model(**encoded_input2).pooler_output
+            if cosine_sim:
+                word_feat1 = word_feat1 / word_feat1.norm(dim=-1, keepdim=True)
+                word_feat2 = word_feat2 / word_feat2.norm(dim=-1, keepdim=True)
             
-            word_feat1 = word_feat1 / word_feat1.norm(dim=-1, keepdim=True)
-            word_feat2 = word_feat2 / word_feat2.norm(dim=-1, keepdim=True)
             word_feat1s.append(word_feat1.cpu())
             word_feat2s.append(word_feat2.cpu())
     
@@ -306,10 +308,70 @@ def calculate_word_similarity_bert(df, model, tokenizer, device, size = 100, col
     for f1,f2 in zip(word_feat1, word_feat2):
         cos_sims.append((f1 @ f2).item())
 
-    df['cosine_sim_bert'] = cos_sims
+    df[column_name] = cos_sims
     return df
 
-def calculate_word_embeddings(word1s, model, device, tokenizer = None, size = 100, path = None, save_to_path = False, model_type = "clip"):
+def calculate_word_similarity_glove(df, model, device, size = 100, column_name="cosine_sim_glove", cosine_sim = True):
+
+    word1s = df['word1'].tolist()
+    word2s = df['word2'].tolist()
+
+    word_feat1s = []
+    word_feat2s = []
+
+    n = len(word1s)
+    mask = [True] * n
+
+    with torch.no_grad():
+        for i in range(0, n, size):
+            
+            start = i
+            end = min(i+ size, n)
+            texts1 = word1s[start:end]
+            texts2 = word2s[start:end]
+
+            word_feat1_list = []
+            word_feat2_list = []
+            for acc,w1,w2 in zip(range(start,end),texts1,texts2):
+                if w1 not in model:
+                    feat1 = np.asarray([-1] * 300) 
+                    mask[acc] = False
+                else:
+                    feat1 = model[w1]
+                word_feat1_list.append(torch.from_numpy(feat1.reshape(1,-1)))
+                
+                if w2 not in model:
+                    feat2 = np.asarray([-1] * 300) 
+                    mask[acc] = False
+                else:
+                    feat2 = model[w2]
+                word_feat2_list.append(torch.from_numpy(feat2.reshape(1,-1)))
+                
+                # acc += 1
+
+            word_feat1 = torch.cat(word_feat1_list, axis=0).to(device)
+            word_feat2 = torch.cat(word_feat2_list, axis=0).to(device)
+            
+            if cosine_sim:
+                word_feat1 = word_feat1 / word_feat1.norm(dim=-1, keepdim=True)
+                word_feat2 = word_feat2 / word_feat2.norm(dim=-1, keepdim=True)
+            
+            word_feat1s.append(word_feat1)
+            word_feat2s.append(word_feat2)
+    
+    cos_sims = []
+    word_feat1 = torch.cat(word_feat1s, axis=0)
+    word_feat2 = torch.cat(word_feat2s, axis=0)
+    for acc,(f1,f2) in enumerate(zip(word_feat1, word_feat2)):
+        if mask[acc]:
+            cos_sims.append((f1 @ f2).item())
+        else:
+            cos_sims.append(-2.0)
+
+    df[column_name] = cos_sims
+    return df
+
+def calculate_word_embeddings(word1s, model, device, tokenizer = None, size = 100, path = None, save_to_path = False, model_type = "clip", cosine_sim = True):
     word_feat1s = []
 
     n = len(word1s)
@@ -358,11 +420,13 @@ def calculate_word_embeddings(word1s, model, device, tokenizer = None, size = 10
             
                 
     word_feat1 = torch.cat(word_feat1s, axis=0)
-    # cos = torch.nn.CosineSimilarity(dim=-1, eps=1e-6)
     if save_to_path and path is not None:
-        word_feat1_norm =  word_feat1 / word_feat1.norm(dim=-1, keepdim=True)
+        if cosine_sim:
+            word_feat1_norm =  word_feat1 / word_feat1.norm(dim=-1, keepdim=True)
+        else:
+            word_feat1_norm = word_feat1
         sim = word_feat1_norm @ word_feat1_norm.T
-        # sim = cos(word_feat1, word_feat1)
+        
         with open(path, 'wb+') as f:
             pickle.dump((word1s, mask, word_feat1.cpu().numpy(), sim.cpu().numpy()),f)
     return word_feat1
