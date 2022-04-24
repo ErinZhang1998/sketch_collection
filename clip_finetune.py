@@ -39,7 +39,7 @@ def get_default_args():
         'BETAS' : (0.9,0.98),
         'EPS' : 1e-6,
         'WEIGHT_DECAY' : 0.01,
-        'TRAIN_CATEGORY' : ['face'],#data
+        'TRAIN_CATEGORY' : ['face', 'angel'],#data
         'TEST_CATEGORY' : ['face', 'angel'],
         'IMAGE_PATH_TEMPLATE' : {
                 'face' : '/raid/xiaoyuz1/sketch_datasets/face_images_weight_5_all/{}.png',
@@ -229,22 +229,29 @@ def test(parse_args):
     device = "cuda:{}".format(gpu_num) if torch.cuda.is_available() else "cpu" 
     torch_path_name = parse_args['test_model_path']
 
-    checkpoint = torch.load(torch_path_name)
-    args = checkpoint['args']
-
-    use_open_clip = 'open_clip' in args and args['open_clip']
-    if use_open_clip:
-        import open_clip
-    else:
+    if torch_path_name is None:
         import clip 
-
-    if use_open_clip:
-        model, train_transform, preprocess = \
-            open_clip.create_model_and_transforms('ViT-B-32-quickgelu', pretrained='laion400m_e32', device = device)
-        model.load_state_dict(checkpoint['model_state_dict'])
-    else:
+        print("Load CLIP ZERO-SHOT!")
         model, preprocess = clip.load("ViT-B/32",device=device,jit=False) #Must set jit=False for training
-        model.load_state_dict(checkpoint['model_state_dict'])
+        use_open_clip = False
+        args = get_default_args()
+    else:
+        checkpoint = torch.load(torch_path_name)
+        args = checkpoint['args']
+
+        use_open_clip = 'open_clip' in args and args['open_clip']
+        if use_open_clip:
+            import open_clip
+        else:
+            import clip 
+
+        if use_open_clip:
+            model, train_transform, preprocess = \
+                open_clip.create_model_and_transforms('ViT-B-32-quickgelu', pretrained='laion400m_e32', device = device)
+            model.load_state_dict(checkpoint['model_state_dict'])
+        else:
+            model, preprocess = clip.load("ViT-B/32",device=device,jit=False) #Must set jit=False for training
+            model.load_state_dict(checkpoint['model_state_dict'])
 
     dfs, train_t_dataloader, test_dataloaders, dev_dataloaders = get_test_loaders(args, get_df(), preprocess)
     final_accs_dup = {
@@ -287,6 +294,10 @@ def test(parse_args):
         gts['dev'][cat] = gt
     
     acc_path_name = parse_args['test_save_path']
+    try:
+        assert acc_path_name is not None
+    except:
+        raise ValueError("No SAVE DIR!")
     print("Saving test results to: ", acc_path_name)
     import pickle
     with open(acc_path_name, 'wb+') as f:
