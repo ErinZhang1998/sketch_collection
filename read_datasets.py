@@ -348,6 +348,49 @@ def show_these_sketches(
     plt.show()
     plt.close()
 
+def to_doodler(json_obj, indices, target_label, label_to_name_dict, root_folder, category_name):
+    folder_name = "{}_{}_json_64".format(category_name, label_to_name_dict[target_label])
+    folder_name = os.path.join(root_folder, folder_name)
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
+
+    for idx in indices:
+        drawing_raw = json_obj['train_data'][idx]
+        part_labels = pd.unique(np.asarray(drawing_raw)[:,-1]).astype(int)
+        if not target_label in part_labels:
+            continue 
+        
+        input_data = {}
+        for k,v in label_to_name_dict.items():
+            input_data[v] = []
+        for l in part_labels:
+            if l == target_label:
+                break 
+            if l not in label_to_name_dict:
+                continue
+            l_name = label_to_name_dict[l]
+            
+            part_xy_vectors = transform_spg_2_quickdraw(drawing_raw, label_selected=[l])
+            vector_part = []
+            for stroke in part_xy_vectors:
+                stroke = np.asarray(stroke).T.astype(float)
+                vector_part.append(stroke.tolist())
+            input_data[l_name] = vector_part
+        
+
+        part_xy_vectors = transform_spg_2_quickdraw(drawing_raw, label_selected=[target_label])
+        target_data = []
+        for stroke in part_xy_vectors:
+            stroke = np.asarray(stroke).T.astype(float)
+            target_data.append(stroke.tolist())
+        json_dict = {
+            "input_parts": input_data,
+            "target_part": target_data,
+        }
+        with open(os.path.join(folder_name, "{}.json".format(idx)), "w+") as outfile:
+            json.dump(json_dict, outfile)
+
+
 def to_absolute(drawing_raw):
     '''
     Original format is the relative difference, now transform all to absolute coordinate.
