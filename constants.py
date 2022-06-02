@@ -55,9 +55,7 @@ angel_parts_idx_dict = {
     0:"halo",1 : "eyes",2:"nose",3:"mouth",4:"outline of face",5:"body",7:"wings",
 }
 
-angel_parts_idx_dict_doodler = {
-    0:"halo", 1 : "eyes", 2:"nose", 3:"mouth", 4:"face", 5:"body", 7:"wings",
-}
+angel_parts_idx_dict_doodler = {0:"halo", 1 : "eyes", 2:"nose", 3:"mouth", 4:"face", 5:"body", 7:"wings"}
 
 angel_part_image_indices = None
 with open('/raid/xiaoyuz1/angel_part_image_indices.pickle', 'rb') as f:

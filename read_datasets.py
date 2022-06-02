@@ -96,7 +96,8 @@ def get_features(feature_folder_template, part_idx_list):
                 feature_dict[part_idx][int(pathi.split("/")[-1].split(".")[0])] = feati
     return feature_dict
 
-def transform_spg_2_quickdraw(drawing_raw, label_selected=[]):
+
+def transform_spg_2_quickdraw(drawing_raw, label_selected=[], return_labels=False):
     drawing_raw = np.asarray(drawing_raw)
     abs_x = 25
     abs_y = 25
@@ -107,9 +108,10 @@ def transform_spg_2_quickdraw(drawing_raw, label_selected=[]):
             [],
         ],
     ]
+    labels = []
     x,y = abs_x,abs_y
     for idx,(dx,dy,p,l) in enumerate(drawing_raw):
-        
+        l = int(l)
         x = x+dx
         y = y+dy
         if len(label_selected) > 0:
@@ -119,7 +121,10 @@ def transform_spg_2_quickdraw(drawing_raw, label_selected=[]):
         drawing[-1][1].append(y)
 
         if(p > 0 and idx < len(drawing_raw)-2):
+            labels.append(l)
             drawing.append([[],[]])
+        if idx == len(drawing_raw)-1:
+            labels.append(l)
     
     # centering the parts
     all_points = []
@@ -138,7 +143,10 @@ def transform_spg_2_quickdraw(drawing_raw, label_selected=[]):
         ys = [ypts + dy for ypts in stroke[1]]
         final_drawing.append([xs,ys])
     
-    return final_drawing
+    if return_labels:
+        return final_drawing, labels
+    else:
+        return final_drawing
 
 def all_indices_with_parts(json_file, L, part_idx):
     idxs = []
@@ -348,47 +356,71 @@ def show_these_sketches(
     plt.show()
     plt.close()
 
+
+
+
 def to_doodler(json_obj, indices, target_label, label_to_name_dict, root_folder, category_name):
+    '''
+    Change the SPG data into json files that can be used to train DoodlerGAN
+    '''
     folder_name = "{}_{}_json_64".format(category_name, label_to_name_dict[target_label])
     folder_name = os.path.join(root_folder, folder_name)
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
+    
+    all_labels = list(label_to_name_dict.keys())
 
     for idx in indices:
         drawing_raw = json_obj['train_data'][idx]
-        part_labels = pd.unique(np.asarray(drawing_raw)[:,-1]).astype(int)
-        if not target_label in part_labels:
-            continue 
         
-        input_data = {}
-        for k,v in label_to_name_dict.items():
-            input_data[v] = []
-        for l in part_labels:
-            if l == target_label:
-                break 
-            if l not in label_to_name_dict:
-                continue
-            l_name = label_to_name_dict[l]
-            
-            part_xy_vectors = transform_spg_2_quickdraw(drawing_raw, label_selected=[l])
-            vector_part = []
-            for stroke in part_xy_vectors:
-                stroke = np.asarray(stroke).T.astype(float)
-                vector_part.append(stroke.tolist())
-            input_data[l_name] = vector_part
-        
+        stroke_xy, stroke_label = transform_spg_2_quickdraw(drawing_raw, label_selected=all_labels, return_labels=True)
+        stroke_label = np.asarray(stroke_label)
 
-        part_xy_vectors = transform_spg_2_quickdraw(drawing_raw, label_selected=[target_label])
-        target_data = []
-        for stroke in part_xy_vectors:
-            stroke = np.asarray(stroke).T.astype(float)
-            target_data.append(stroke.tolist())
-        json_dict = {
-            "input_parts": input_data,
-            "target_part": target_data,
-        }
-        with open(os.path.join(folder_name, "{}.json".format(idx)), "w+") as outfile:
-            json.dump(json_dict, outfile)
+        if not target_label in stroke_label:
+            continue 
+
+        target_label_indices = np.where(stroke_label == target_label)[0]
+        target_start_ends = []
+
+        s = 0
+        while s < len(target_label_indices):
+            e = s+1
+            while e < len(target_label_indices) and target_label_indices[e] == target_label_indices[e-1]+1:
+                e += 1
+            target_start_ends.append((target_label_indices[s],target_label_indices[e-1]+1))
+            s = e
+
+        for j, (target_s, target_e) in enumerate(target_start_ends):
+        
+            
+            json_dict = {
+                "input_parts": {},
+                "target_part": [],
+            }
+            for stroke_idx in range(target_s, target_e):
+                stroke = stroke_xy[stroke_idx]
+                stroke = np.asarray(stroke).T.astype(float)
+                json_dict['target_part'].append(stroke.tolist())
+
+            input_data = {}
+            for _,label_name in label_to_name_dict.items():
+                input_data[label_name] = []
+            
+            # _, prev_target_e = target_start_ends[j-1] if j > 0 else -1,-1
+            # input_s = prev_target_e+1
+
+            for stroke_idx in range(target_s):
+                l = stroke_label[stroke_idx]
+                l_name = label_to_name_dict[l]
+                
+                stroke = stroke_xy[stroke_idx]
+                stroke = np.asarray(stroke).T.astype(float)
+                input_data[l_name].append(stroke.tolist())
+
+            json_dict['input_parts'] = input_data
+
+            with open(os.path.join(folder_name, "{}_{}.json".format(idx, j)), "w+") as outfile:
+                json.dump(json_dict, outfile)
 
 
 def to_absolute(drawing_raw):
