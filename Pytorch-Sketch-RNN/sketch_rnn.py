@@ -74,7 +74,7 @@ def normalize(strokes):
     return data
 
 def denormalize(strokes, scale_factor):
-    """Normalize entire dataset (delta_x, delta_y) by the scaling factor."""
+    """Denormalize entire dataset (delta_x, delta_y) by the scaling factor."""
     data = []
     
     for seq in strokes:

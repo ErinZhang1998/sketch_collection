@@ -19,6 +19,7 @@ import constants as CONST
 from scipy.spatial import distance
 import base64
 import torch
+import scipy.interpolate as si
 
 def find_one(df, t1, k1):
     v1 = df[k1].apply(lambda x : t1 in x)
@@ -97,10 +98,168 @@ def get_features(feature_folder_template, part_idx_list):
     return feature_dict
 
 
-def transform_spg_2_quickdraw(drawing_raw, label_selected=[], return_labels=False):
+def quickdraw_to_vector(drawing_raw, side=256):
+    '''
+    Very similar functionality to transform_spg_2_quickdraw, but used to cluster strokes from 
+    both SPG data (dx,dy,pen_state,label) and QuickDraw data (dx,dy,pen_state)
+    
+    No centering.
+    No selecting strokes base on labels.
+    
+    drawing_raw: a sequence of points representing either one stroke or an entire sketch.
+    side: not sure what is the canvas dimension for sketches in the npz file downloaded from
+        QuickDraw dataset, so followed the notebook code (https://github.com/magenta/magenta-demos/blob/main/jupyter-notebooks/Sketch_RNN.ipynb) to change (dx,dy) into (x,y), but the sketch can no longer
+        fit into a (256,256) canvas. 
+        So just do /old_dimension then *side, and side is usually 256.
+    '''
+    drawing_raw = np.asarray(drawing_raw)    
+    example = np.zeros_like(drawing_raw[:,:2])
+
+    example[:, 0] = np.cumsum(drawing_raw[:,0], 0)
+    example[:, 1] = np.cumsum(drawing_raw[:,1], 0)
+    min_x, min_y = np.min(example, 0)
+    max_x, max_y = np.max(example, 0)
+    # 50? from the notebook in the comment
+    x_dim, y_dim = 50 + max_x - min_x, 50 + max_y - min_y
+    
+    drawing = [[]] # for each stroke, [xs,ys]
+    x,y = 25 - min_x, 25 - min_y #25? from the notebook in the comment
+    
+    for idx, drawing_idx in enumerate(drawing_raw):
+        dx,dy,pen_state = drawing_idx[0],drawing_idx[1],drawing_idx[2]
+        x = x+dx
+        y = y+dy
+        
+        drawing[-1].append([x,y])
+        
+        if(pen_state > 0 and idx < len(drawing_raw)-2):
+            drawing.append([])
+    
+    vector_part = []
+    for stroke in drawing:
+        stroke = np.asarray(stroke).astype(float)
+        stroke[:,0] /= float(x_dim)
+        
+        stroke[:,0] *= side
+        stroke[:,1] /= y_dim
+        stroke[:,1] *= side
+        vector_part.append(stroke)
+    return vector_part 
+
+
+def normalize_stroke(stroke, side):
+    '''
+    Helper function to normalize each stroke to a canvas of size "side".
+    '''
+    min_x, min_y = np.min(stroke, 0)
+    max_x, max_y = np.max(stroke, 0)
+    side_x = max_x - min_x
+    side_y = max_y - min_y
+    # print(side_x,side_y,np.isclose(side_x, [1e-7, -1e-7]),np.isclose(side_y, [1e-7, -1e-7]))
+    if np.any(np.isclose(side_x, [1e-9, -1e-9])) or np.any(np.isclose(side_y, [1e-9, -1e-9])):
+        return None
+    if side_x > side_y:
+        long_is_x = 1
+    else:
+        long_is_x = 0
+    long_side, short_side = max(side_x,side_y), min(side_x,side_y)
+    short_side_new = (short_side/long_side) * side
+    if long_is_x:
+        # center coordinate relative to the upper left corner
+        ccr_x, ccr_y = side * 0.5, short_side_new*0.5
+        side_x_new, side_y_new = side, short_side_new
+    else:
+        ccr_x, ccr_y = short_side_new*0.5, side * 0.5
+        side_x_new, side_y_new = short_side_new, side
+    
+    # upper left coordinate absolute
+    ula_x = side * 0.5 - ccr_x
+    ula_y = side * 0.5 - ccr_y
+    
+    # stroke_cpy = np.copy(stroke)
+    # stroke_cpy[:,0] = ((stroke[:,0] - min_x) / side_x) * side_x_new + ula_x
+    # stroke_cpy[:,1] = ((stroke[:,1] - min_y) / side_y) * side_y_new + ula_y
+    
+    stroke[:,0] -= min_x
+    stroke[:,0] /= side_x
+    stroke[:,0] *= side_x_new
+    stroke[:,0] += ula_x
+    
+    stroke[:,1] -= min_y
+    stroke[:,1] /= side_y
+    stroke[:,1] *= side_y_new
+    stroke[:,1] += ula_y
+    
+    return stroke
+
+def normalize(list_of_strokes, side=28):
+    '''
+    Normalizing each stroke in a list of strokes so that the longer side fits into a canvas of size "side" (scale and centered).
+    '''
+    normalized_strokes = []
+    for stroke in list_of_strokes:
+        stroke = np.asarray(stroke).astype(float)
+        stroke = normalize_stroke(stroke, side)
+        if stroke is not None:
+            normalized_strokes.append(stroke)
+    
+    return normalized_strokes
+
+def bspline(cv, n=100, degree=3):
+    """ Calculate n samples on a bspline
+
+        cv :      Array ov control vertices
+        n  :      Number of samples to return
+        degree:   Curve degree
+    """
+    
+
+    cv = np.asarray(cv)
+    count = cv.shape[0]
+
+    # Prevent degree from exceeding count-1, otherwise splev will crash
+    degree = np.clip(degree,1,count-1)
+
+    # Calculate knot vector
+    kv = np.array([0]*degree + list(range(count-degree+1)) + [count-degree]*degree,dtype='int')
+
+    # Calculate query range
+    u = np.linspace(0,(count-degree),n)
+
+    # Calculate result
+    return np.array(si.splev(u, (kv, cv.T, degree))).T
+
+
+def process_quickdraw_to_stroke(drawing_raw, b_spline_degree=3, b_spline_num_sampled_points=100):
+    # normalize to 256 first, skip this step?
+    #strokes = quickdraw_to_vector(drawing_raw)
+    
+    drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0)
+    drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0)
+    pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
+    strokes = np.vsplit(drawing_raw[:,:2].astype(float), pen_lift_indices)[:-1]
+    
+    strokes_normalized = normalize(strokes)
+    strokes_spline_fitted = []
+    for stroke in strokes_normalized:
+        stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
+        strokes_spline_fitted.append(stroke_sampled)
+    
+    return strokes_spline_fitted
+
+
+def transform_spg_2_quickdraw(
+    drawing_raw, 
+    label_selected=[], 
+    return_labels=False,
+    drawing_contains_label=True,
+    abs_x = 25,
+    abs_y = 25,
+):
+    '''
+    This function is used to render the SPG images. Very similar functionality to quickdraw_to_vector
+    '''
     drawing_raw = np.asarray(drawing_raw)
-    abs_x = 25
-    abs_y = 25
 
     drawing = [
         [
@@ -110,21 +269,36 @@ def transform_spg_2_quickdraw(drawing_raw, label_selected=[], return_labels=Fals
     ]
     labels = []
     x,y = abs_x,abs_y
-    for idx,(dx,dy,p,l) in enumerate(drawing_raw):
-        l = int(l)
-        x = x+dx
-        y = y+dy
-        if len(label_selected) > 0:
-            if l not in label_selected:
-                continue
-        drawing[-1][0].append(x)
-        drawing[-1][1].append(y)
+    for idx, drawing_idx in enumerate(drawing_raw):
+        
+        if drawing_contains_label:
+            dx,dy,p,l = drawing_idx
+            l = int(l)
+            
+            x = x+dx
+            y = y+dy
+            if len(label_selected) > 0:
+                if l not in label_selected:
+                    continue
+            drawing[-1][0].append(x)
+            drawing[-1][1].append(y)
 
-        if(p > 0 and idx < len(drawing_raw)-2):
-            labels.append(l)
-            drawing.append([[],[]])
-        if idx == len(drawing_raw)-1:
-            labels.append(l)
+            if(p > 0 and idx < len(drawing_raw)-2):
+                labels.append(l)
+                drawing.append([[],[]])
+            if idx == len(drawing_raw)-1:
+                labels.append(l)
+        else:
+            dx,dy,p = drawing_idx
+            x = x+dx
+            y = y+dy
+            
+            drawing[-1][0].append(x)
+            drawing[-1][1].append(y)
+            
+            if(p > 0 and idx < len(drawing_raw)-2):
+                labels.append(l)
+                drawing.append([[],[]])
     
     # centering the parts
     all_points = []
@@ -211,8 +385,7 @@ def render_img(
     if convert:
         #image = PIL.Image.fromarray(image).convert("L")
         image = PIL.ImageOps.invert(image)
-    # else:
-    #     return torch.FloatTensor(image/255.)[None, :, :]
+    
     if img_path is not None:
         image.save(img_path)
     if show:
@@ -421,7 +594,6 @@ def to_doodler(json_obj, indices, target_label, label_to_name_dict, root_folder,
 
             with open(os.path.join(folder_name, "{}_{}.json".format(idx, j)), "w+") as outfile:
                 json.dump(json_dict, outfile)
-
 
 def to_absolute(drawing_raw):
     '''
