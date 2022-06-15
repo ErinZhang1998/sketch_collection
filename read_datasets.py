@@ -230,7 +230,7 @@ def bspline(cv, n=100, degree=3):
     return np.array(si.splev(u, (kv, cv.T, degree))).T
 
 
-def process_quickdraw_to_stroke(drawing_raw, b_spline_degree=3, b_spline_num_sampled_points=100):
+def process_quickdraw_to_stroke(drawing_raw, side=28, b_spline_degree=3, b_spline_num_sampled_points=100):
     # normalize to 256 first, skip this step?
     #strokes = quickdraw_to_vector(drawing_raw)
     
@@ -239,7 +239,7 @@ def process_quickdraw_to_stroke(drawing_raw, b_spline_degree=3, b_spline_num_sam
     pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
     strokes = np.vsplit(drawing_raw[:,:2].astype(float), pen_lift_indices)[:-1]
     
-    strokes_normalized = normalize(strokes)
+    strokes_normalized = normalize(strokes, side=side)
     strokes_spline_fitted = []
     for stroke in strokes_normalized:
         stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
