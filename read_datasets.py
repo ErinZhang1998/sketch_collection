@@ -383,7 +383,7 @@ def render_img(
     image = np.copy(np.asarray(surface_data))[::4].reshape(side, side)
     image = PIL.Image.fromarray(image).convert("L")
     if convert:
-        #image = PIL.Image.fromarray(image).convert("L")
+        # ????
         image = PIL.ImageOps.invert(image)
     
     if img_path is not None:
@@ -978,6 +978,58 @@ def all_pair_combination(dfn, wrong_rows = []):
         columns=['word1', 'word2', 'total_occurrence', 'correct#', 'correct%', 'correct_row_idx', 'incorrect_row_idx'],
     )
     return all_pair_df
+
+def process_quickdraw_to_stroke_no_normalize(drawing_raw, side=28, b_spline_degree=3, b_spline_num_sampled_points=100):
+    drawing_raw = np.asarray(drawing_raw)
+    drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
+    drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
+    pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
+    strokes = np.vsplit(drawing_raw[:,:2].astype(float), pen_lift_indices)[:-1]
+    
+    strokes_normalized = strokes
+    strokes_spline_fitted = []
+    for stroke in strokes_normalized:
+        stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
+        strokes_spline_fitted.append(stroke_sampled)
+    
+    return strokes_spline_fitted
+
+def squared_l2_error(src, dst):
+    d = numpy.zeros(numpy.shape(src))
+    d[:,0] = src[:,0]-dst[:,0]
+    d[:,1] = src[:,1]-dst[:,1]
+
+    r = np.sum(np.square(d[:,0])+np.square(d[:,1]))
+    return r
+
+def generate_semicircle(n1=200, radius=100, x0=100, y0=100, template_size=256):
+    n1 = n1 // 2
+    template = np.array([
+        [np.cos(i*np.pi/(n1-1))*radius for i in range(n1)], 
+        [np.sin(i*np.pi/(n1-1))*radius for i in range(n1)],
+    ])
+    template[0] += x0
+    template[1] += y0
+    
+    ys = np.ones(n1) * template[1][-1]
+    xs = np.linspace(template[0][0], template[0][-1], n1)
+    lastline = np.hstack([xs.reshape(-1,1), ys.reshape(-1,1)]).T
+    template = np.hstack([template, lastline])    
+    template = rd.normalize([template.T], side=template_size)[0]
+    
+    return template
+
+
+def generate_arc(n1=100, radius=100, x0=100, y0=100, template_size=256):
+    template = np.array([
+        [np.cos(i*np.pi/(n1-1))*radius for i in range(n1)], 
+        [np.sin(i*np.pi/(n1-1))*radius for i in range(n1)],
+    ])
+    template[0] += x0
+    template[1] += y0
+    
+    template = rd.normalize([template.T], side=template_size)[0]
+    return template
 
 # ------------------------------------------------------------------------------------------------
 def get_img(img_path):

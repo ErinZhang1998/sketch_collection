@@ -3,12 +3,21 @@ import os
 import pandas as pd
 import pickle 
 
+def loading_quickdraw_npz(is_face = True, face_path = '/raid/xiaoyuz1/sketch_datasets/sketchrnn_face.npz', angel_path = '/raid/xiaoyuz1/sketch_datasets/sketchrnn_angel.npz'):
+    if is_face:
+        drawing_npz = np.load(face_path, allow_pickle=True,encoding='latin1')
+    else:
+        drawing_npz = np.load(angel_path, allow_pickle=True,encoding='latin1')
+    return drawing_npz
+
 face_parts_idx = [0,1,2,4,6]
 face_parts_idx_dict = {
-    0 : "eyes",
+    0: "eyes",
     1: "nose",
     2: "mouth",
+    3: "ear",
     4: "hair",
+    5: "moustache",
     6: "outline of face",
 }
 face_parts_idx_dict_doodler = {
@@ -52,7 +61,7 @@ angel_json = json.load(open(
 
 angel_parts_idx = [0,1,2,3,4,5,7]
 angel_parts_idx_dict = {
-    0:"halo",1 : "eyes",2:"nose",3:"mouth",4:"outline of face",5:"body",7:"wings",
+    0:"halo",1 : "eyes",2:"nose",3:"mouth",4:"outline of face",5:"body", 6: "torso", 7:"wings",
 }
 
 angel_parts_idx_dict_doodler = {0:"halo", 1 : "eyes", 2:"nose", 3:"mouth", 4:"face", 5:"body", 7:"wings"}

@@ -4,54 +4,41 @@ os.environ["PATH"] = os.environ["PATH"]+":/usr/local/cuda/bin/" # adding this li
 
 CUDA_version = [s for s in subprocess.check_output(["nvcc", "--version"]).decode("UTF-8").split(", ") if s.startswith("release")][0].split(" ")[-1]
 print("CUDA version:", CUDA_version)
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"]="7"
 import pydiffvg
 import torch
-import skimage
-import skimage.io
-import random
-import ttools.modules
-import argparse
-import math
-import torchvision
-import torchvision.transforms as transforms
-import seaborn as sns
-import pandas as pd
-pydiffvg.set_print_timing(False)
-from IPython.display import Image, HTML, clear_output
-from tqdm import tqdm_notebook, tnrange
-os.environ['FFMPEG_BINARY'] = 'ffmpeg'
-import moviepy.editor as mvp
-from moviepy.video.io.ffmpeg_writer import FFMPEG_VideoWriter
-import PIL
-from torchvision import utils
-import numpy as np
-import torch
-import os
-print("Torch version:", torch.__version__)
-
-#@title Load CLIP {vertical-output: true}
-
-# os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-
-import os
+import os 
 import clip
-import torch
-import torch.nn.functional as F
-import torchvision
-from torchvision import transforms
+import argparse
+import torchvision.transforms as transforms
+pydiffvg.set_print_timing(False)
+import PIL
+import numpy as np
+import PIL.ImageOps
+from tqdm import tqdm
+print("Torch version:", torch.__version__)
 
 parser = argparse.ArgumentParser(description='extract clip features of images')
 parser.add_argument("--folder", type=str, help="folder of images to extract CLIP features for")
-parser.add_argument("--png_file", type=str, help="if not providing a folder of images, we need to have a npz file of the images")
-
+# parser.add_argument("--png_file", type=str, help="if not providing a folder of images, we need to have a npz file of the images")
 parser.add_argument("--feature_save_folder", type=str, help="folder of saved features")
 parser.add_argument("--batch_size", type=int, default=8, help="batch_size")
 parser.add_argument("--start_idx", type=int, help="start_idx")
 parser.add_argument("--end_idx", type=int, help="end_idx")
 parser.add_argument("--flip", type=int, default=0, help="flip the picture")
 
+def extract_feature(model, images, image_names, feature_save_folder, save_prefix):    
+    feature_path = os.path.join(feature_save_folder, '{}.npy'.format(save_prefix))
+    image_name_path = os.path.join(feature_save_folder, '{}.txt'.format(save_prefix))
+    
+    im_batch = torch.cat(images)
+    im_batch = im_batch.cuda(pydiffvg.get_device())
+    with torch.no_grad():
+        image_features = model.encode_image(im_batch)
+    with open(feature_path, 'wb') as f:
+        np.save(f, image_features.cpu().numpy())
+    with open(image_name_path, "w+") as f:
+        f.write("\n".join(image_names))
 
 def main(args):
     # collect all png for CLIP feature extraction
@@ -61,6 +48,7 @@ def main(args):
     for file in os.listdir(folder):
         if file.endswith(".png"):
             sub_files.append(file)
+    sub_files = sorted(sub_files)
     total_num_images = len(sub_files)
     print("Total number of images: ", total_num_images)
 
@@ -81,15 +69,15 @@ def main(args):
         transforms.CenterCrop(size=(224, 224)),
         transforms.ToTensor(),
     ])
-
+    batch_start_idx = start_idx / batch_size
     acc = batch_size
-    all_batches = []
-    all_image_paths = []
+    batch_idx = 0
 
     img_augs = []
     image_paths = []
-    for f_idx, f in enumerate(sub_files):
+    for f_idx in tqdm(range(total_num_images)):
         
+        f = sub_files[f_idx]
         if not f.endswith(".png"):
             print("WARNING: encountered file not ending in png", f)
             continue
@@ -99,49 +87,46 @@ def main(args):
         
         img_path = os.path.join(folder, f)
         pimg = PIL.Image.open(img_path)
-        image_paths.append(img_path)
+        
         if(len(np.asarray(pimg).shape) < 3):
             pimg = pimg.convert(mode='RGB')
         if args.flip:
-            import PIL.ImageOps
             pimg = PIL.ImageOps.invert(pimg)
         
         img_augs.append(resize_to_clip(pimg).unsqueeze(0))
+        image_paths.append(img_path)
         acc -= 1
-        if f_idx == len(sub_files)-1:     
-            all_batches.append(img_augs)
-            all_image_paths.append(image_paths)
-            break
+        
+        # if f_idx == len(sub_files)-1:     
+        #     break
+        
         if acc < 1 or f_idx == (end_idx-1):
+            save_prefix = int(batch_start_idx+batch_idx)
+            extract_feature(model, img_augs, image_paths, feature_save_folder, save_prefix)
+            batch_idx += 1
             acc = batch_size
-            all_batches.append(img_augs)
-            all_image_paths.append(image_paths)
-            
             img_augs = [] 
             image_paths = []
-
-
-    all_image_features = []
-    batch_start_idx = start_idx / batch_size
-
-    for batch_idx in range(len(all_batches)):
         
-        save_prefix = int(batch_start_idx + batch_idx)
-        # print(save_prefix, batch_idx)
+        if f_idx == total_num_images-1:
+            break
+
+    # for batch_idx in range(len(all_batches)):
+    #     save_prefix = int(batch_start_idx + batch_idx)
+    #     # print(save_prefix, batch_idx)
         
-        feature_path = os.path.join(feature_save_folder, '{}.npy'.format(save_prefix))
-        image_name_path = os.path.join(feature_save_folder, '{}.txt'.format(save_prefix))
-        with open(image_name_path, "w+") as f:
-            f.write("\n".join(all_image_paths[batch_idx]))
+    #     feature_path = os.path.join(feature_save_folder, '{}.npy'.format(save_prefix))
+    #     image_name_path = os.path.join(feature_save_folder, '{}.txt'.format(save_prefix))
+    #     with open(image_name_path, "w+") as f:
+    #         f.write("\n".join(all_image_paths[batch_idx]))
         
-        im_batch = torch.cat(all_batches[batch_idx])
-        im_batch = im_batch.cuda(pydiffvg.get_device())
-        with torch.no_grad():
-            image_features = model.encode_image(im_batch)
-        all_image_features.append(image_features)
-        # print(image_features.shape)
-        with open(feature_path, 'wb') as f:
-            np.save(f, image_features.cpu().numpy())
+    #     im_batch = torch.cat(all_batches[batch_idx])
+    #     im_batch = im_batch.cuda(pydiffvg.get_device())
+    #     with torch.no_grad():
+    #         image_features = model.encode_image(im_batch)
+    #     all_image_features.append(image_features)
+    #     with open(feature_path, 'wb') as f:
+    #         np.save(f, image_features.cpu().numpy())
 
 
 if __name__ == '__main__':
