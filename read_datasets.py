@@ -20,6 +20,8 @@ from scipy.spatial import distance
 import base64
 import torch
 import scipy.interpolate as si
+from sklearn.metrics import mean_squared_error
+
 
 def find_one(df, t1, k1):
     v1 = df[k1].apply(lambda x : t1 in x)
@@ -995,7 +997,7 @@ def process_quickdraw_to_stroke_no_normalize(drawing_raw, side=28, b_spline_degr
     return strokes_spline_fitted
 
 def squared_l2_error(src, dst):
-    d = numpy.zeros(numpy.shape(src))
+    d = np.zeros(np.shape(src))
     d[:,0] = src[:,0]-dst[:,0]
     d[:,1] = src[:,1]-dst[:,1]
 
@@ -1011,14 +1013,14 @@ def generate_semicircle(n1=200, radius=100, x0=100, y0=100, template_size=256):
     template[0] += x0
     template[1] += y0
     
-    ys = np.ones(n1) * template[1][-1]
     xs = np.linspace(template[0][0], template[0][-1], n1)
+    ys = np.ones(n1) * template[1][-1]
+    
     lastline = np.hstack([xs.reshape(-1,1), ys.reshape(-1,1)]).T
     template = np.hstack([template, lastline])    
-    template = rd.normalize([template.T], side=template_size)[0]
+    template = normalize([template.T], side=template_size)[0]
     
     return template
-
 
 def generate_arc(n1=100, radius=100, x0=100, y0=100, template_size=256):
     template = np.array([
@@ -1028,8 +1030,219 @@ def generate_arc(n1=100, radius=100, x0=100, y0=100, template_size=256):
     template[0] += x0
     template[1] += y0
     
-    template = rd.normalize([template.T], side=template_size)[0]
+    template = normalize([template.T], side=template_size)[0]
     return template
+
+def generate_circle(n1=100, radius=100, x0=100, y0=100, template_size=256):
+    template = np.array([
+        [np.cos(i*2*np.pi/n1)*radius for i in range(n1-1)]+[radius], 
+        [np.sin(i*2*np.pi/n1)*radius for i in range(n1-1)]+[0],
+    ])
+    template[0] += x0
+    template[1] += y0
+    
+    template = normalize([template.T], side=template_size)[0]
+    return template
+
+def generate_line(n1=100, length=100, x0=100, y0=100, template_size=256):
+    '''
+    Not USABLE
+    '''
+    xs = np.linspace(0, template_size, n1)
+    ys = np.linspace(0, template_size, n1)
+    template = np.hstack([xs.reshape(-1,1), ys.reshape(-1,1)]).T
+    # template[0] += x0
+    # template[1] += y0
+    # print(template.shape)
+    # template = normalize([template.T], side=template_size)
+    # print(template.shape)
+    return template.T
+
+def generate_square(n1=200,template_size=256):
+    n = n1//4
+    side1 = np.hstack([
+        np.linspace(0, template_size, n).reshape(-1,1), 
+        (np.ones(n) * (template_size)).reshape(-1,1),
+    ])
+    
+    side2 = np.hstack([
+        (np.ones(n) * (template_size)).reshape(-1,1),
+        np.linspace(template_size, 0, n).reshape(-1,1),
+    ])
+    
+    side3 = np.hstack([
+        np.linspace(template_size, 0, n).reshape(-1,1),
+        np.zeros(n).reshape(-1,1),
+    ])
+    
+    side4 = np.hstack([
+        (np.zeros(n)).reshape(-1,1),
+        np.linspace(0, template_size, n).reshape(-1,1),
+    ])
+    
+    template = np.vstack([side1,side2,side3,side4])
+    return template
+
+def generate_rectangles(x1=0,y1=0,x2=256,y2=256,n1=200):
+    w = np.abs(x2-x1)
+    h = np.abs(y2-y1)
+    n = 4
+    side1 = np.hstack([
+        np.linspace(x1, x2, n).reshape(-1,1), 
+        (np.ones(n) * (y1)).reshape(-1,1),
+    ])
+    
+    side2 = np.hstack([
+        (np.ones(n) * (x2)).reshape(-1,1),
+        np.linspace(y1, y2, n).reshape(-1,1),
+    ])
+    
+    side3 = np.hstack([
+        np.linspace(x2, x1, n).reshape(-1,1),
+        (np.ones(n) * (y2)).reshape(-1,1),
+    ])
+    
+    side4 = np.hstack([
+        (np.ones(n) * (x1)).reshape(-1,1),
+        np.linspace(y2, y1, n).reshape(-1,1),
+    ])
+    
+    template = np.vstack([side1,side2,side3,side4])
+    return template
+
+def square_from_line(data):
+    maxs = np.max(data, axis=0)
+    mins = np.min(data, axis=0)
+    ll = maxs - mins
+    # l = ll[~np.isclose(ll, 1e-8, rtol=1, atol=1e-07)][0]
+    if np.isclose(ll[0], 0.0, rtol=1, atol=1e-05):
+        x1 = mins[0] - 1
+        x2 = mins[0] + 1
+        y1,y2 = mins[1], maxs[1]
+    else:
+        y1 = mins[1] - 1
+        y2 = mins[1] + 1
+        x1,x2 = mins[0], maxs[0]
+    return generate_rectangles(x1,y1,x2,y2)
+    
+    
+
+def transform_line(src, dst):
+    import scipy.optimize
+
+    def res(p,src,dst):
+        T = np.matrix([[np.cos(p[2]),-np.sin(p[2]),p[0]],
+        [np.sin(p[2]), np.cos(p[2]),p[1]],
+        [0 ,0 ,1 ]])
+        n = np.size(src,0)
+        xt = np.ones([n,3])
+        xt[:,:-1] = src
+        xt = (xt*T.T).A
+        d = np.zeros(np.shape(src))
+        d[:,0] = xt[:,0]-dst[:,0]
+        d[:,1] = xt[:,1]-dst[:,1]
+        r = np.sum(np.square(d[:,0])+np.square(d[:,1]))
+        return r
+
+    def jac(p,src,dst):
+        T = np.matrix([[np.cos(p[2]),-np.sin(p[2]),p[0]],
+        [np.sin(p[2]), np.cos(p[2]),p[1]],
+        [0 ,0 ,1 ]])
+        n = np.size(src,0)
+        xt = np.ones([n,3])
+        xt[:,:-1] = src
+        xt = (xt*T.T).A
+        d = np.zeros(np.shape(src))
+        d[:,0] = xt[:,0]-dst[:,0]
+        d[:,1] = xt[:,1]-dst[:,1]
+        dUdth_R = np.matrix([[-np.sin(p[2]),-np.cos(p[2])],
+                            [ np.cos(p[2]),-np.sin(p[2])]])
+        dUdth = (src*dUdth_R.T).A
+        g = np.array([  np.sum(2*d[:,0]),
+                        np.sum(2*d[:,1]),
+                        np.sum(2*(d[:,0]*dUdth[:,0]+d[:,1]*dUdth[:,1])) ])
+        return g
+
+    def hess(p,src,dst):
+        n = np.size(src,0)
+        T = np.matrix([[np.cos(p[2]),-np.sin(p[2]),p[0]],
+        [np.sin(p[2]), np.cos(p[2]),p[1]],
+        [0 ,0 ,1 ]])
+        n = np.size(src,0)
+        xt = np.ones([n,3])
+        xt[:,:-1] = src
+        xt = (xt*T.T).A
+        d = np.zeros(np.shape(src))
+        d[:,0] = xt[:,0]-dst[:,0]
+        d[:,1] = xt[:,1]-dst[:,1]
+        dUdth_R = np.matrix([[-np.sin(p[2]),-np.cos(p[2])],[np.cos(p[2]),-np.sin(p[2])]])
+        dUdth = (src*dUdth_R.T).A
+        H = np.zeros([3,3])
+        H[0,0] = n*2
+        H[0,2] = np.sum(2*dUdth[:,0])
+        H[1,1] = n*2
+        H[1,2] = np.sum(2*dUdth[:,1])
+        H[2,0] = H[0,2]
+        H[2,1] = H[1,2]
+        d2Ud2th_R = np.matrix([[-np.cos(p[2]), np.sin(p[2])],[-np.sin(p[2]),-np.cos(p[2])]])
+        d2Ud2th = (src*d2Ud2th_R.T).A
+        H[2,2] = np.sum(2*(np.square(dUdth[:,0])+np.square(dUdth[:,1]) + d[:,0]*d2Ud2th[:,0]+d[:,0]*d2Ud2th[:,0]))
+        return H
+
+    p = scipy.optimize.minimize(
+        res,
+        [0,0,0],
+        args=(src, dst),
+        method='Newton-CG',
+        jac=jac,hess=hess).x
+    T  = np.array([[np.cos(p[2]),-np.sin(p[2]),p[0]],[np.sin(p[2]), np.cos(p[2]),p[1]]])
+    Tr = np.matrix(np.vstack((T,[0,0,1]))).A
+    return Tr
+
+
+def get_transform(template, data, projective=True):
+    src_pts = template.astype(np.float32).reshape(-1,1,2)
+    dst_pts = data.astype(np.float32).reshape(-1,1,2)
+    
+    if projective:
+        projectiveM, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+        result = cv2.perspectiveTransform(src_pts, projectiveM).reshape(-1,2)
+        return projectiveM, result
+    else:
+        affineM = cv2.estimateAffine2D(src_pts, dst_pts, cv2.RANSAC)[0]
+        affineM = np.concatenate([affineM, np.array([[0,0,1]])], axis=0)
+        result = cv2.transform(np.array([template], copy=True).astype(np.float32), affineM)[0][:,:-1]
+        return affineM, result
+
+TEMPLATE_DICT = {
+    'arc' : lambda n : generate_arc(n1=n),
+    'circle' : lambda n : generate_circle(n1=n, radius=100, x0=100, y0=100, template_size=256),
+    'square' : lambda n : generate_square(n1=n, template_size=256),
+    'semicircle' : lambda n : generate_semicircle(n1=n, radius=100, x0=100, y0=100, template_size=256),
+}
+
+def get_sequence_colors(n, color_func = plt.cm.Reds):
+    '''
+    Easier to print sequence colors
+    '''
+    px = np.linspace(0,10,n)
+    py = np.random.randn(n)
+    pz = np.linspace(0,1,n) 
+    colors = color_func(np.linspace(0,1,n))
+    colors[:,-1] = pz 
+    
+    return colors
+
+def get_transform_smallest_mse(data, n=200):
+    mse_dict = collections.defaultdict(lambda : (np.inf, np.zeros((3,3))))
+    for template_name, template_func in TEMPLATE_DICT.items():
+        template = template_func(n)
+        M, result = get_transform(template, data, projective=True)
+        mse = mean_squared_error(result, data)
+        mse_dict[template_name] = (mse, M)
+    
+    return mse_dict
+        
 
 # ------------------------------------------------------------------------------------------------
 def get_img(img_path):
