@@ -232,6 +232,52 @@ def bspline(cv, n=100, degree=3):
     return np.array(si.splev(u, (kv, cv.T, degree))).T
 
 
+def interpcurve(N, pX, pY):
+    #equally spaced in arclength
+    N = np.transpose(np.linspace(0,1,N))
+    #how many points will be uniformly interpolated?
+    nt = N.size
+    #number of points on the curve
+    n = pX.size
+    pxy=np.array((pX,pY)).T
+    # p1=pxy[0,:]
+    # pend=pxy[-1,:]
+    # last_segment= np.linalg.norm(np.subtract(p1,pend))
+    # epsilon= 10*np.finfo(float).eps
+    # #IF the two end points are not close enough lets close the curve
+    # if last_segment > epsilon*np.linalg.norm(np.amax(abs(pxy),axis=0)):
+    #     pxy=np.vstack((pxy,p1))
+    #     nt = nt + 1
+    # else:
+    #     print('Contour already closed')
+    
+    
+
+    pt=np.zeros((nt,2))
+    #Compute the chordal arclength of each segment.
+    chordlen = (np.sum(np.diff(pxy,axis=0)**2,axis=1))**(1/2)
+    #Normalize the arclengths to a unit total
+    chordlen = chordlen/np.sum(chordlen)
+    #cumulative arclength
+    cumarc = np.append(0,np.cumsum(chordlen))
+
+    tbins= np.digitize(N, cumarc) # bin index in which each N is in
+
+    #catch any problems at the ends
+#     tbins[np.where(tbins<=0 | (N<=0))]=1
+#     tbins[np.where(tbins >= n | (N >= 1))] = n - 1   
+    
+    tbins[np.where(np.bitwise_or(tbins<=0 ,(N<=0)))] = 1
+    tbins[np.where(np.bitwise_or(tbins >= n , (N >= 1)))] = n - 1
+
+    #s = np.divide((N - cumarc[tbins]),chordlen[tbins-1])
+    #pt = pxy[tbins,:] + np.multiply((pxy[tbins,:] - pxy[tbins-1,:]),(np.vstack([s]*2)).T)
+    
+    s = np.divide((N - cumarc[tbins-1]),chordlen[tbins-1]) 
+    pt = pxy[tbins-1,:] + np.multiply((pxy[tbins,:] - pxy[tbins-1,:]),(np.vstack([s]*2)).T)
+
+    return pt 
+
 def process_quickdraw_to_stroke(drawing_raw, side=28, b_spline_degree=3, b_spline_num_sampled_points=100):
     # normalize to 256 first, skip this step?
     #strokes = quickdraw_to_vector(drawing_raw)
@@ -983,18 +1029,41 @@ def all_pair_combination(dfn, wrong_rows = []):
 
 def process_quickdraw_to_stroke_no_normalize(drawing_raw, side=28, b_spline_degree=3, b_spline_num_sampled_points=100):
     drawing_raw = np.asarray(drawing_raw)
+    # drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
+    # drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
+    # pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
+    # strokes = np.vsplit(drawing_raw[:,:2].astype(float), pen_lift_indices)[:-1]
+    
+    # strokes_spline_fitted = []
+    # for stroke in strokes:
+    #     stroke_sampled = interpcurve(b_spline_num_sampled_points, stroke[:,0], stroke[:,1])
+    #     # stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
+    #     strokes_spline_fitted.append(stroke_sampled)
+    
+    # return strokes_spline_fitted
+
+    # drawing_raw = np.asarray(drawing_arr[idx])
     drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
     drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
     pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
     strokes = np.vsplit(drawing_raw[:,:2].astype(float), pen_lift_indices)[:-1]
     
-    strokes_normalized = strokes
     strokes_spline_fitted = []
-    for stroke in strokes_normalized:
-        stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
+    for stroke in strokes:
+        
+        maxs = np.max(stroke, axis=0)
+        mins = np.min(stroke, axis=0)
+        ll = maxs - mins
+        
+        if np.any(np.isclose(ll, 1e-8, rtol=1, atol=1e-07)):
+            stroke_sampled = square_from_line(stroke)
+        else:
+            #stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
+            stroke_sampled = interpcurve(b_spline_num_sampled_points, stroke[:,0], stroke[:,1])
+        # 
         strokes_spline_fitted.append(stroke_sampled)
-    
     return strokes_spline_fitted
+    
 
 def squared_l2_error(src, dst):
     d = np.zeros(np.shape(src))
@@ -1086,7 +1155,7 @@ def generate_square(n1=200,template_size=256):
 def generate_rectangles(x1=0,y1=0,x2=256,y2=256,n1=200):
     w = np.abs(x2-x1)
     h = np.abs(y2-y1)
-    n = 4
+    n = 50
     side1 = np.hstack([
         np.linspace(x1, x2, n).reshape(-1,1), 
         (np.ones(n) * (y1)).reshape(-1,1),
@@ -1242,7 +1311,16 @@ def get_transform_smallest_mse(data, n=200):
         mse_dict[template_name] = (mse, M)
     
     return mse_dict
-        
+
+def get_transformed_template(template, data, M, projective=True):
+    src_pts = template.astype(np.float32).reshape(-1,1,2)
+    
+    if projective:
+        result = cv2.perspectiveTransform(src_pts, M).reshape(-1,2)
+    else:
+        result = cv2.transform(np.array([template], copy=True).astype(np.float32), M)[0][:,:-1]
+    mse = mean_squared_error(result, data)
+    return result, mse
 
 # ------------------------------------------------------------------------------------------------
 def get_img(img_path):
