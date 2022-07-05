@@ -1058,8 +1058,8 @@ def process_quickdraw_to_stroke_no_normalize(drawing_raw, side=28, b_spline_degr
         if np.any(np.isclose(ll, 1e-8, rtol=1, atol=1e-07)):
             stroke_sampled = square_from_line(stroke)
         else:
-            #stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
-            stroke_sampled = interpcurve(b_spline_num_sampled_points, stroke[:,0], stroke[:,1])
+            stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
+            stroke_sampled = interpcurve(b_spline_num_sampled_points, stroke_sampled[:,0], stroke_sampled[:,1])
         # 
         strokes_spline_fitted.append(stroke_sampled)
     return strokes_spline_fitted
@@ -1082,19 +1082,19 @@ def generate_semicircle(n1=200, radius=100, x0=100, y0=100, template_size=256):
     template[0] += x0
     template[1] += y0
     
-    xs = np.linspace(template[0][0], template[0][-1], n1)
-    ys = np.ones(n1) * template[1][-1]
+    xs = np.linspace(template[0][-1], template[0][0], n1+1)
+    ys = np.ones(n1+1) * template[1][-1]
     
-    lastline = np.hstack([xs.reshape(-1,1), ys.reshape(-1,1)]).T
+    lastline = np.hstack([xs.reshape(-1,1), ys.reshape(-1,1)]).T[:,1:]
     template = np.hstack([template, lastline])    
     template = normalize([template.T], side=template_size)[0]
-    
+    template = interpcurve(n1*2, template[:,0], template[:,1])
     return template
 
 def generate_arc(n1=100, radius=100, x0=100, y0=100, template_size=256):
     template = np.array([
-        [np.cos(i*np.pi/(n1-1))*radius for i in range(n1)], 
-        [np.sin(i*np.pi/(n1-1))*radius for i in range(n1)],
+        [np.cos(i * np.pi / (n1-1))*radius for i in range(n1)], 
+        [np.sin(i * np.pi / (n1-1))*radius for i in range(n1)],
     ])
     template[0] += x0
     template[1] += y0
@@ -1104,14 +1104,45 @@ def generate_arc(n1=100, radius=100, x0=100, y0=100, template_size=256):
 
 def generate_circle(n1=100, radius=100, x0=100, y0=100, template_size=256):
     template = np.array([
-        [np.cos(i*2*np.pi/n1)*radius for i in range(n1-1)]+[radius], 
-        [np.sin(i*2*np.pi/n1)*radius for i in range(n1-1)]+[0],
+        [np.cos(i * 2 * np.pi/ (n1-1))*radius for i in range(n1)], 
+        [np.sin(i * 2 * np.pi/ (n1-1))*radius for i in range(n1)],
     ])
     template[0] += x0
     template[1] += y0
     
     template = normalize([template.T], side=template_size)[0]
     return template
+
+def generate_zigzag(n1=200, num_fold = 3, template_size=256):
+    unit = 10
+    n = 20
+    side_list = []
+    for fold_idx in range(num_fold):
+        start_idx = fold_idx * 2
+        x1,y1 = unit * start_idx, 0
+        x2,y2 = unit * (start_idx+1), unit
+        x3,y3 = unit * (start_idx+2), 0
+        side1 = np.hstack([
+            np.linspace(x1, x2, n).reshape(-1,1), 
+            np.linspace(y1, y2, n).reshape(-1,1),
+        ])
+        side2 = np.hstack([
+            np.linspace(x2, x3, n).reshape(-1,1), 
+            np.linspace(y2, y3, n).reshape(-1,1),
+        ])
+        side_list.append(side1)
+        side_list.append(side2)
+    template = np.vstack(side_list)
+    template = normalize([template], side=template_size)[0]
+    template = interpcurve(n1, template[:,0], template[:,1])
+    return template
+
+def generate_zigzag1(n1=200, template_size=256):
+    return generate_zigzag(n1,1,template_size)
+
+
+def generate_zigzag3(n1=200, template_size=256):
+    return generate_zigzag(n1,3,template_size)
 
 def generate_line(n1=100, length=100, x0=100, y0=100, template_size=256):
     '''
@@ -1155,7 +1186,7 @@ def generate_square(n1=200,template_size=256):
 def generate_rectangles(x1=0,y1=0,x2=256,y2=256,n1=200):
     w = np.abs(x2-x1)
     h = np.abs(y2-y1)
-    n = 50
+    n = n1 // 4
     side1 = np.hstack([
         np.linspace(x1, x2, n).reshape(-1,1), 
         (np.ones(n) * (y1)).reshape(-1,1),
@@ -1288,6 +1319,8 @@ TEMPLATE_DICT = {
     'circle' : lambda n : generate_circle(n1=n, radius=100, x0=100, y0=100, template_size=256),
     'square' : lambda n : generate_square(n1=n, template_size=256),
     'semicircle' : lambda n : generate_semicircle(n1=n, radius=100, x0=100, y0=100, template_size=256),
+    'zigzag3' : lambda n : generate_zigzag3(n1=n, template_size=256),
+    'zigzag1' : lambda n : generate_zigzag1(n1=n, template_size=256),
 }
 
 def get_sequence_colors(n, color_func = plt.cm.Reds):
@@ -1321,6 +1354,27 @@ def get_transformed_template(template, data, M, projective=True):
         result = cv2.transform(np.array([template], copy=True).astype(np.float32), M)[0][:,:-1]
     mse = mean_squared_error(result, data)
     return result, mse
+
+def plot_primitives(w=256, h=256, n=200, num_pngs_per_row = 2, row_figsize = 3, column_figsize = 3):
+    num_rows = len(TEMPLATE_DICT) // num_pngs_per_row
+    if num_rows * num_pngs_per_row < len(TEMPLATE_DICT):
+        num_rows += 1
+
+    fig = plt.figure(figsize=(num_pngs_per_row * row_figsize, num_rows * column_figsize)) 
+    fig.patch.set_alpha(1)  # solution
+
+    for index, (template_name, template_func) in enumerate(TEMPLATE_DICT.items()):
+        template = template_func(n)
+        
+        plt.subplot(num_rows, num_pngs_per_row, index+1)
+        plt.scatter(template[:,0], template[:,1], s=1, c='r')
+        plt.title(template_name)
+        # plt.axis('off')
+        plt.xlim(0,w)
+        plt.ylim(h,0)
+
+    plt.show()
+    plt.close()
 
 # ------------------------------------------------------------------------------------------------
 def get_img(img_path):
