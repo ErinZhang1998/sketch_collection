@@ -1315,7 +1315,7 @@ def get_transform(template, data, projective=True):
         return affineM, result
 
 TEMPLATE_DICT = {
-    'arc' : lambda n : generate_arc(n1=n),
+    'arc' : lambda n : generate_arc(n1=n, radius=100, x0=100, y0=100, template_size=256),
     'circle' : lambda n : generate_circle(n1=n, radius=100, x0=100, y0=100, template_size=256),
     'square' : lambda n : generate_square(n1=n, template_size=256),
     'semicircle' : lambda n : generate_semicircle(n1=n, radius=100, x0=100, y0=100, template_size=256),
@@ -1335,15 +1335,39 @@ def get_sequence_colors(n, color_func = plt.cm.Reds):
     
     return colors
 
-def get_transform_smallest_mse(data, n=200):
-    mse_dict = collections.defaultdict(lambda : (np.inf, np.zeros((3,3))))
-    for template_name, template_func in TEMPLATE_DICT.items():
+def get_transform_smallest_mse(data, template_dict, n=200, use_projective=True):
+    min_template_name, min_template_mse = None, np.inf
+    min_M = None
+    for template_name, template_func in template_dict.items():
         template = template_func(n)
-        M, result = get_transform(template, data, projective=True)
+        try:
+            M, result = get_transform(template, data, projective=use_projective)
+        except:
+            try:
+                mask = np.zeros(len(data))
+                mask[:20] = 1
+                np.random.shuffle(mask)
+                data = data + (np.random.normal(0, 0.05, len(data)) * mask).reshape(-1,1)
+                M, result = get_transform(template, data, projective=use_projective)
+            except:
+                continue
         mse = mean_squared_error(result, data)
-        mse_dict[template_name] = (mse, M)
+        if mse < min_template_mse:
+            min_template_name = template_name
+            min_template_mse = mse
+            min_M = M
     
-    return mse_dict
+    # mse_dict = collections.defaultdict(lambda : (np.inf, np.zeros((3,3))))
+    # for template_name, template_func in TEMPLATE_DICT.items():
+    #     template = template_func(n)
+    #     M, result = get_transform(template, data, projective=True)
+    #     mse = mean_squared_error(result, data)
+    #     mse_dict[template_name] = (mse, M)
+    
+    if min_M is None:
+        return np.zeros(9), 'line', min_template_mse
+    else:
+        return min_M.reshape(-1,), min_template_name, min_template_mse
 
 def get_transformed_template(template, data, M, projective=True):
     src_pts = template.astype(np.float32).reshape(-1,1,2)
