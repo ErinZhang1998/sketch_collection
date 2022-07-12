@@ -21,7 +21,112 @@ import base64
 import torch
 import scipy.interpolate as si
 from sklearn.metrics import mean_squared_error
+from scipy.spatial import ConvexHull
+from sklearn.linear_model import LinearRegression
 
+def get_translation_matrix(tx,ty):
+    T = np.matrix([
+        [1,0,tx],
+        [0,1,ty],
+        [0 ,0 ,1 ]]
+    )
+    return T
+
+def get_rotation_matrix(theta):
+    T = np.matrix([
+        [np.cos(theta),-np.sin(theta),0],
+        [np.sin(theta), np.cos(theta),0],
+        [0 ,0 ,1 ]]
+    )
+    return T
+
+def get_shear_matrix(hx,hy):
+    T = np.matrix([
+        [1,hx,0],
+        [hy,1,0],
+        [0 ,0 ,1 ]]
+    )
+    return T
+
+def get_uniform_scale_matrix(s):
+    T = np.matrix([
+        [s,0,0],
+        [0,s,0],
+        [0 ,0 ,1 ]]
+    )
+    return T
+
+def get_scale_matrix(sx,sy):
+    T = np.matrix([
+        [sx,0,0],
+        [0,sy,0],
+        [0 ,0 ,1 ]]
+    )
+    return T
+
+def get_euclidean_matrix(tx,ty,theta):
+    T = np.matrix([
+        [np.cos(theta),-np.sin(theta),tx],
+        [np.sin(theta), np.cos(theta),ty],
+        [0 ,0 ,1 ]]
+    )
+    return T
+
+def fit_transformation_loss(p,src,dst):
+    T = get_euclidean_matrix(*p)
+    n = np.size(src,0)
+    xt = np.ones([n,3])
+    xt[:,:-1] = src
+    xt = (xt*T.T).A
+    d = np.zeros(np.shape(src))
+    d[:,0] = xt[:,0]-dst[:,0]
+    d[:,1] = xt[:,1]-dst[:,1]
+    r = np.sum(np.square(d[:,0])+np.square(d[:,1]))
+    return r
+
+def fit_transformation_jac(p,src,dst):
+    T = get_euclidean_matrix(*p)
+    n = np.size(src,0)
+    xt = np.ones([n,3])
+    xt[:,:-1] = src
+    xt = (xt*T.T).A
+    d = np.zeros(np.shape(src))
+    d[:,0] = xt[:,0]-dst[:,0]
+    d[:,1] = xt[:,1]-dst[:,1]
+    dUdth_R = np.matrix([[-np.sin(p[2]),-np.cos(p[2])],
+                        [ np.cos(p[2]),-np.sin(p[2])]])
+    dUdth = (src*dUdth_R.T).A
+    g = np.array([  np.sum(2*d[:,0]),
+                    np.sum(2*d[:,1]),
+                    np.sum(2*(d[:,0]*dUdth[:,0]+d[:,1]*dUdth[:,1])) ])
+    return g
+
+def fit_transformation_hess(p,src,dst):
+    n = np.size(src,0)
+    T = np.matrix([[np.cos(p[2]),-np.sin(p[2]),p[0]],
+    [np.sin(p[2]), np.cos(p[2]),p[1]],
+    [0 ,0 ,1 ]])
+    n = np.size(src,0)
+    xt = np.ones([n,3])
+    xt[:,:-1] = src
+    xt = (xt*T.T).A
+    d = np.zeros(np.shape(src))
+    d[:,0] = xt[:,0]-dst[:,0]
+    d[:,1] = xt[:,1]-dst[:,1]
+    dUdth_R = np.matrix([[-np.sin(p[2]),-np.cos(p[2])],[np.cos(p[2]),-np.sin(p[2])]])
+    dUdth = (src*dUdth_R.T).A
+    H = np.zeros([3,3])
+    H[0,0] = n*2
+    H[0,2] = np.sum(2*dUdth[:,0])
+    H[1,1] = n*2
+    H[1,2] = np.sum(2*dUdth[:,1])
+    H[2,0] = H[0,2]
+    H[2,1] = H[1,2]
+    d2Ud2th_R = np.matrix([[-np.cos(p[2]), np.sin(p[2])],[-np.sin(p[2]),-np.cos(p[2])]])
+    d2Ud2th = (src*d2Ud2th_R.T).A
+    H[2,2] = np.sum(2*(
+        np.square(dUdth[:,0]) + np.square(dUdth[:,1]) + d[:,0]*d2Ud2th[:,0] + d[:,0]*d2Ud2th[:,0]))
+    return H
 
 def find_one(df, t1, k1):
     v1 = df[k1].apply(lambda x : t1 in x)
@@ -1027,22 +1132,8 @@ def all_pair_combination(dfn, wrong_rows = []):
     )
     return all_pair_df
 
-def process_quickdraw_to_stroke_no_normalize(drawing_raw, side=28, b_spline_degree=3, b_spline_num_sampled_points=100):
+def process_quickdraw_to_stroke_no_normalize(drawing_raw, b_spline_degree=3, b_spline_num_sampled_points=100):
     drawing_raw = np.asarray(drawing_raw)
-    # drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
-    # drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
-    # pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
-    # strokes = np.vsplit(drawing_raw[:,:2].astype(float), pen_lift_indices)[:-1]
-    
-    # strokes_spline_fitted = []
-    # for stroke in strokes:
-    #     stroke_sampled = interpcurve(b_spline_num_sampled_points, stroke[:,0], stroke[:,1])
-    #     # stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
-    #     strokes_spline_fitted.append(stroke_sampled)
-    
-    # return strokes_spline_fitted
-
-    # drawing_raw = np.asarray(drawing_arr[idx])
     drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
     drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
     pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
@@ -1063,7 +1154,77 @@ def process_quickdraw_to_stroke_no_normalize(drawing_raw, side=28, b_spline_degr
         # 
         strokes_spline_fitted.append(stroke_sampled)
     return strokes_spline_fitted
+
+def process_quickdraw_to_part_convex_hull(drawing_raw, parts_indices, b_spline_num_sampled_points=200):
+    drawing_raw = np.asarray(drawing_raw)
+    drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
+    drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
     
+    parts = []
+    for k in parts_indices:
+        strokes = drawing_raw[drawing_raw[:,-1] == k]
+        if len(strokes) < 1:
+            continue
+        parts.append(strokes)
+    
+    strokes_spline_fitted = {}
+    for part in parts:
+        part_type = part[0][-1]
+        strokes = part[:,:2]
+        maxs = np.max(strokes, axis=0)
+        mins = np.min(strokes, axis=0)
+        ll = maxs - mins
+        
+        more_than_3 = len(strokes) >= 3
+        has_length_x =  not np.isclose(ll[0], 0.0, rtol=1, atol=1e-05)
+        has_length_y = not np.isclose(ll[1], 0.0, rtol=1, atol=1e-05)
+        one_stroke = np.sum(part[:,2] == 1) < 2
+        
+        if one_stroke and more_than_3 and has_length_x and has_length_y:
+            hull_vert = strokes
+        else:
+            if more_than_3 and has_length_x and has_length_y:
+                hull = ConvexHull(strokes)
+                hull_vert = strokes[hull.vertices]
+            else:
+            
+                if not has_length_x:
+                    reg = LinearRegression().fit(strokes[:,1].reshape(-1,1), strokes[:,0])
+                    test_xs = np.linspace(mins[1], maxs[1], 30)
+                    test_ys = reg.predict(test_xs.reshape(-1,1))
+                    test_data  = np.hstack([test_xs.reshape(-1,1), test_ys.reshape(-1,1)])
+                    mask = np.zeros(len(test_data))
+                    mask[:10] = 1
+                    np.random.shuffle(mask)
+                    # test_data = test_data + (np.random.normal(0, 0.05, len(test_data)) * mask).reshape(-1,1)
+                    test_data[:,1] = test_data[:,1] + (np.random.normal(0, 0.05, len(test_data)) * mask)
+                    hull = ConvexHull(test_data)
+                    hull_vert = np.hstack([
+                        test_data[hull.vertices][:,1:],
+                        test_data[hull.vertices][:,:1],
+                    ])
+                else:
+                    reg = LinearRegression().fit(strokes[:,0].reshape(-1,1), strokes[:,1])
+                    test_xs = np.linspace(mins[0], maxs[0], 30)
+                    test_ys = reg.predict(test_xs.reshape(-1,1))
+                    test_data  = np.hstack([test_xs.reshape(-1,1), test_ys.reshape(-1,1)])
+                    
+                    mask = np.zeros(len(test_data))
+                    mask[:10] = 1
+                    np.random.shuffle(mask)
+                    # test_data = test_data + (np.random.normal(0, 0.05, len(test_data)) * mask).reshape(-1,1)
+                    if not has_length_y:
+                        test_data[:,1] = test_data[:,1] + (np.random.normal(0, 0.05, len(test_data)) * mask)
+                    else:
+                        test_data[:,0] = test_data[:,0] + (np.random.normal(0, 0.05, len(test_data)) * mask)
+                    hull = ConvexHull(test_data)
+                    hull_vert = test_data[hull.vertices]
+
+            hull_vert = np.concatenate([hull_vert, hull_vert[0].reshape(1,-1)])        
+        stroke_sampled = interpcurve(b_spline_num_sampled_points, hull_vert[:,0], hull_vert[:,1])
+        strokes_spline_fitted[part_type] = stroke_sampled
+    
+    return strokes_spline_fitted
 
 def squared_l2_error(src, dst):
     d = np.zeros(np.shape(src))
@@ -1335,22 +1496,23 @@ def get_sequence_colors(n, color_func = plt.cm.Reds):
     
     return colors
 
-def get_transform_smallest_mse(data, template_dict, n=200, use_projective=True):
+def get_transform_smallest_mse(data, template_dict, use_projective=True):
     min_template_name, min_template_mse = None, np.inf
     min_M = None
-    for template_name, template_func in template_dict.items():
-        template = template_func(n)
+    for template_name, template in template_dict.items():
+        # template = template_func(n)
         try:
             M, result = get_transform(template, data, projective=use_projective)
         except:
-            try:
-                mask = np.zeros(len(data))
-                mask[:20] = 1
-                np.random.shuffle(mask)
-                data = data + (np.random.normal(0, 0.05, len(data)) * mask).reshape(-1,1)
-                M, result = get_transform(template, data, projective=use_projective)
-            except:
-                continue
+            continue
+            # try:
+            #     mask = np.zeros(len(data))
+            #     mask[:20] = 1
+            #     np.random.shuffle(mask)
+            #     data = data + (np.random.normal(0, 0.05, len(data)) * mask).reshape(-1,1)
+            #     M, result = get_transform(template, data, projective=use_projective)
+            # except:
+            #     continue
         mse = mean_squared_error(result, data)
         if mse < min_template_mse:
             min_template_name = template_name

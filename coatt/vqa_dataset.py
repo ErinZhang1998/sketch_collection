@@ -119,8 +119,10 @@ class VqaDataset(Dataset):
 
         ques = qqa['question'][:-1]
         quesI = [self.q2i["<sos>"]] + [self.q2i[x.lower()] for x in ques.split(" ") if x.lower() in self.q2i_keys] + [self.q2i["<eos>"]]
+        
         if not self.collate:
             quesI = quesI + [self.q2i["<pad>"]]*(8 - len(quesI))
+        
         if self.method == 'simple':
             quesT = torch.zeros(self.q2i_len).float()
             for idx in quesI:

@@ -132,8 +132,7 @@ class EncoderRNN(nn.Module):
     def __init__(self):
         super(EncoderRNN, self).__init__()
         # bidirectional lstm:
-        self.lstm = nn.LSTM(5, hp.enc_hidden_size, \
-            dropout=hp.dropout, bidirectional=True)
+        self.lstm = nn.LSTM(5, hp.enc_hidden_size, dropout=hp.dropout, bidirectional=True)
         # create mu and sigma from lstm's last output:
         self.fc_mu = nn.Linear(2*hp.enc_hidden_size, hp.Nz)
         self.fc_sigma = nn.Linear(2*hp.enc_hidden_size, hp.Nz)
@@ -151,17 +150,17 @@ class EncoderRNN(nn.Module):
                 cell = torch.zeros(2, batch_size, hp.enc_hidden_size)
             hidden_cell = (hidden, cell)
         _, (hidden,cell) = self.lstm(inputs.float(), hidden_cell)
-        # hidden is (2, batch_size, hidden_size), we want (batch_size, 2*hidden_size):
+        # hidden is (2, batch_size, hidden_size), we want (1, batch_size, hidden_size):
         hidden_forward, hidden_backward = torch.split(hidden,1,0)
         hidden_cat = torch.cat([hidden_forward.squeeze(0), hidden_backward.squeeze(0)],1)
         # mu and sigma:
         mu = self.fc_mu(hidden_cat)
         sigma_hat = self.fc_sigma(hidden_cat)
-        sigma = torch.exp(sigma_hat/2.)
+        sigma = torch.exp(sigma_hat / 2.)
         # N ~ N(0,1)
         z_size = mu.size()
         if use_cuda:
-            N = torch.normal(torch.zeros(z_size),torch.ones(z_size)).cuda()
+            N = torch.normal(torch.zeros(z_size), torch.ones(z_size)).cuda()
         else:
             N = torch.normal(torch.zeros(z_size),torch.ones(z_size))
         z = mu + sigma*N
@@ -174,15 +173,17 @@ class DecoderRNN(nn.Module):
         # to init hidden and cell from z:
         self.fc_hc = nn.Linear(hp.Nz, 2*hp.dec_hidden_size)
         # unidirectional lstm:
-        self.lstm = nn.LSTM(hp.Nz+5, hp.dec_hidden_size, dropout=hp.dropout)
+        self.lstm = nn.LSTM(hp.Nz + 5, hp.dec_hidden_size, dropout=hp.dropout)
         # create proba distribution parameters from hiddens:
-        self.fc_params = nn.Linear(hp.dec_hidden_size,6*hp.M+3)
+        self.fc_params = nn.Linear(hp.dec_hidden_size, 6*hp.M + 3)
 
     def forward(self, inputs, z, hidden_cell=None):
         if hidden_cell is None:
             # then we must init from z
-            hidden,cell = torch.split(torch.tanh(self.fc_hc(z)),hp.dec_hidden_size,1)
+            hidden, cell = torch.split(torch.tanh(self.fc_hc(z)), hp.dec_hidden_size, 1)
+            # the dimension of (h,c) should be (D∗num_layers,N,Hout)
             hidden_cell = (hidden.unsqueeze(0).contiguous(), cell.unsqueeze(0).contiguous())
+        
         outputs,(hidden,cell) = self.lstm(inputs, hidden_cell)
         # in training we feed the lstm with the whole input in one shot
         # and use all outputs contained in 'outputs', while in generate
@@ -193,7 +194,7 @@ class DecoderRNN(nn.Module):
             y = self.fc_params(hidden.view(-1, hp.dec_hidden_size))
         # separate pen and mixture params:
         params = torch.split(y,6,1)
-        params_mixture = torch.stack(params[:-1]) # trajectory
+        params_mixture = torch.stack(params[:-1]) # (M, L * B, 6)
         params_pen = params[-1] # pen up/down
         # identify mixture params: (2,N,1)
         pi,mu_x,mu_y,sigma_x,sigma_y,rho_xy = torch.split(params_mixture,1,2)
@@ -202,7 +203,8 @@ class DecoderRNN(nn.Module):
             len_out = Nmax+1
         else:
             len_out = 1
-                                   
+        
+        # .transpose(0,1).squeeze() --> (L*B, M)           
         pi = F.softmax(pi.transpose(0,1).squeeze(), dim=-1).view(len_out,-1,hp.M)
         sigma_x = torch.exp(sigma_x.transpose(0,1).squeeze()).view(len_out,-1,hp.M)
         sigma_y = torch.exp(sigma_y.transpose(0,1).squeeze()).view(len_out,-1,hp.M)
@@ -229,14 +231,14 @@ class Model():
             eos = torch.stack([torch.Tensor([0,0,0,0,1])]*batch.size()[1]).cuda().unsqueeze(0)
         else:
             eos = torch.stack([torch.Tensor([0,0,0,0,1])]*batch.size()[1]).unsqueeze(0)
-        batch = torch.cat([batch, eos], 0) #(129+1, 16, 5)
-        mask = torch.zeros(Nmax+1, batch.size()[1]) #(129+1, N)
+        batch = torch.cat([batch, eos], 0) #(Nmax+1, batch_size, 5)
+        mask = torch.zeros(Nmax+1, batch.size()[1]) #(Nmax+1, batch_size)
         for indice,length in enumerate(lengths):
-            mask[:length,indice] = 1
+            mask[:length, indice] = 1
         if use_cuda:
             mask = mask.cuda()
-        dx = torch.stack([batch.data[:,:,0]]*hp.M,2)
-        dy = torch.stack([batch.data[:,:,1]]*hp.M,2)
+        dx = torch.stack( [batch.data[:,:,0]] * hp.M , 2)
+        dy = torch.stack( [batch.data[:,:,1]] * hp.M , 2)
         p1 = batch.data[:,:,2]
         p2 = batch.data[:,:,3]
         p3 = batch.data[:,:,4]
@@ -255,25 +257,28 @@ class Model():
         else:
             sos = torch.stack([torch.Tensor([0,0,1,0,0])]*hp.batch_size).unsqueeze(0)
         # had sos at the begining of the batch:
-        batch_init = torch.cat([sos, batch],0)
+        batch_init = torch.cat([sos, batch], 0) #(Nmax+1, batch_size, 5)
         # expend z to be ready to concatenate with inputs:
-        z_stack = torch.stack([z]*(Nmax+1))
+        z_stack = torch.stack([z] * (Nmax + 1)) # Nmax+1 copies of (batch_size, Nz) stacked together --> (Nmax+1, batch_size, Nz)
         # inputs is concatenation of z and batch_inputs
-        inputs = torch.cat([batch_init, z_stack],2)
+        inputs = torch.cat([batch_init, z_stack], 2) 
         # decode:
-        self.pi, self.mu_x, self.mu_y, self.sigma_x, self.sigma_y, \
-            self.rho_xy, self.q, _, _ = self.decoder(inputs, z)
+        self.pi, self.mu_x, self.mu_y, self.sigma_x, self.sigma_y, self.rho_xy, self.q, _, _ = self.decoder(inputs, z)
         # prepare targets:
-        mask,dx,dy,p = self.make_target(batch, lengths)
+        mask, dx, dy, p = self.make_target(batch, lengths)
+        
         # prepare optimizers:
         self.encoder_optimizer.zero_grad()
         self.decoder_optimizer.zero_grad()
+        
         # update eta for LKL:
         self.eta_step = 1-(1-hp.eta_min)*hp.R
+        
         # compute losses:
         LKL = self.kullback_leibler_loss()
-        LR = self.reconstruction_loss(mask,dx,dy,p,epoch)
+        LR = self.reconstruction_loss(mask, dx, dy, p, epoch)
         loss = LR + LKL
+        
         # gradient step
         loss.backward()
         # gradient cliping
@@ -303,14 +308,12 @@ class Model():
 
     def reconstruction_loss(self, mask, dx, dy, p, epoch):
         pdf = self.bivariate_normal_pdf(dx, dy)
-        LS = -torch.sum(mask*torch.log(1e-5+torch.sum(self.pi * pdf, 2)))\
-            /float(Nmax*hp.batch_size)
+        LS = -torch.sum(mask*torch.log(1e-5+torch.sum(self.pi * pdf, 2)))/float(Nmax*hp.batch_size)
         LP = -torch.sum(p*torch.log(self.q))/float(Nmax*hp.batch_size)
         return LS+LP
 
     def kullback_leibler_loss(self):
-        LKL = -0.5*torch.sum(1+self.sigma-self.mu**2-torch.exp(self.sigma))\
-            /float(hp.Nz*hp.batch_size)
+        LKL = -0.5 * torch.sum(1 + self.sigma - self.mu**2 - torch.exp(self.sigma)) / float(hp.Nz*hp.batch_size)
         if use_cuda:
             KL_min = Variable(torch.Tensor([hp.KL_min]).cuda()).detach()
         else:
