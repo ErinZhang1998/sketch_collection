@@ -1235,7 +1235,6 @@ def generate_circle(n1=100, radius=100, x0=0, y0=0, template_size=256):
     template[0] += x0
     template[1] += y0
     template = template.T
-
     template = normalize([template], side=template_size)[0]
     return template
 
@@ -1246,8 +1245,8 @@ def generate_arc(n1=100, radius=100, x0=0, y0=0, template_size=256):
     ])
     template[0] += x0
     template[1] += y0
-    
-    template = normalize([template.T], side=template_size)[0]
+    template = template.T
+    template = normalize([template], side=template_size)[0]
     return template
 
 def generate_semicircle(n1=200, radius=100, x0=0, y0=0, template_size=256):
@@ -1295,47 +1294,38 @@ def generate_zigzag(n1=200, num_fold = 3, template_size=256):
 def generate_zigzag1(n1=200, template_size=256):
     return generate_zigzag(n1,1,template_size)
 
-
 def generate_zigzag3(n1=200, template_size=256):
     return generate_zigzag(n1,3,template_size)
 
-def generate_line(n1=100, length=100, x0=100, y0=100, template_size=256):
-    '''
-    Not USABLE
-    '''
-    xs = np.linspace(0, template_size, n1)
-    ys = np.linspace(0, template_size, n1)
-    template = np.hstack([xs.reshape(-1,1), ys.reshape(-1,1)]).T
-    # template[0] += x0
-    # template[1] += y0
-    # print(template.shape)
-    # template = normalize([template.T], side=template_size)
-    # print(template.shape)
-    return template.T
-
 def generate_square(n1=200,template_size=256):
     n = n1//4
+    
+    side_length = template_size * 0.5
+    xmin,ymin = -side_length, -side_length
+    xmax,ymax = side_length, side_length
+    
     side1 = np.hstack([
-        np.linspace(0, template_size, n).reshape(-1,1), 
-        (np.ones(n) * (template_size)).reshape(-1,1),
+        np.linspace(xmin, xmax, n).reshape(-1,1), 
+        (np.ones(n) * (ymin)).reshape(-1,1),
     ])
     
     side2 = np.hstack([
-        (np.ones(n) * (template_size)).reshape(-1,1),
-        np.linspace(template_size, 0, n).reshape(-1,1),
+        (np.ones(n) * (xmax)).reshape(-1,1),
+        np.linspace(ymin, ymax, n).reshape(-1,1),
     ])
     
     side3 = np.hstack([
-        np.linspace(template_size, 0, n).reshape(-1,1),
-        np.zeros(n).reshape(-1,1),
+        np.linspace(xmax, xmin, n).reshape(-1,1),
+        (np.ones(n) * (ymax)).reshape(-1,1),
     ])
     
     side4 = np.hstack([
-        (np.zeros(n)).reshape(-1,1),
-        np.linspace(0, template_size, n).reshape(-1,1),
+        (np.ones(n) * (xmin)).reshape(-1,1),
+        np.linspace(ymax, ymin, n).reshape(-1,1),
     ])
     
     template = np.vstack([side1,side2,side3,side4])
+    # template = normalize([template], side=template_size)[0]
     return template
 
 def generate_rectangles(x1=0,y1=0,x2=256,y2=256,n1=200):
