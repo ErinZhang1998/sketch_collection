@@ -265,37 +265,30 @@ def normalize_stroke(stroke, side):
     # print(side_x,side_y,np.isclose(side_x, [1e-7, -1e-7]),np.isclose(side_y, [1e-7, -1e-7]))
     if np.any(np.isclose(side_x, [1e-9, -1e-9])) or np.any(np.isclose(side_y, [1e-9, -1e-9])):
         return None
+
+    # long_side, short_side = max(side_x,side_y), min(side_x,side_y)
+    # short_side_new = (short_side/long_side) * side
     if side_x > side_y:
-        long_is_x = 1
-    else:
-        long_is_x = 0
-    long_side, short_side = max(side_x,side_y), min(side_x,side_y)
-    short_side_new = (short_side/long_side) * side
-    if long_is_x:
         # center coordinate relative to the upper left corner
-        ccr_x, ccr_y = side * 0.5, short_side_new*0.5
-        side_x_new, side_y_new = side, short_side_new
+        # ccr_x, ccr_y = side * 0.5, short_side_new * 0.5
+        side_x_new, side_y_new = side, (side_y/side_x) * side
     else:
-        ccr_x, ccr_y = short_side_new*0.5, side * 0.5
-        side_x_new, side_y_new = short_side_new, side
+        # ccr_x, ccr_y = short_side_new*0.5, side * 0.5
+        side_x_new, side_y_new = (side_x/side_y) * side, side
     
     # upper left coordinate absolute
-    ula_x = side * 0.5 - ccr_x
-    ula_y = side * 0.5 - ccr_y
+    # ula_x = side * 0.5 - ccr_x
+    # ula_y = side * 0.5 - ccr_y
     
-    # stroke_cpy = np.copy(stroke)
-    # stroke_cpy[:,0] = ((stroke[:,0] - min_x) / side_x) * side_x_new + ula_x
-    # stroke_cpy[:,1] = ((stroke[:,1] - min_y) / side_y) * side_y_new + ula_y
-    
-    stroke[:,0] -= min_x
+    stroke[:,0] -= min_x + side_x * 0.5
     stroke[:,0] /= side_x
     stroke[:,0] *= side_x_new
-    stroke[:,0] += ula_x
+    # stroke[:,0] += ula_x
     
-    stroke[:,1] -= min_y
+    stroke[:,1] -= min_y + side_y * 0.5
     stroke[:,1] /= side_y
     stroke[:,1] *= side_y_new
-    stroke[:,1] += ula_y
+    # stroke[:,1] += ula_y
     
     return stroke
 
@@ -1234,7 +1227,30 @@ def squared_l2_error(src, dst):
     r = np.sum(np.square(d[:,0])+np.square(d[:,1]))
     return r
 
-def generate_semicircle(n1=200, radius=100, x0=100, y0=100, template_size=256):
+def generate_circle(n1=100, radius=100, x0=0, y0=0, template_size=256):
+    template = np.array([
+        [np.cos(i * 2 * np.pi/ (n1-1))*radius for i in range(n1)], 
+        [np.sin(i * 2 * np.pi/ (n1-1))*radius for i in range(n1)],
+    ])
+    template[0] += x0
+    template[1] += y0
+    template = template.T
+
+    template = normalize([template], side=template_size)[0]
+    return template
+
+def generate_arc(n1=100, radius=100, x0=0, y0=0, template_size=256):
+    template = np.array([
+        [np.cos(i * np.pi / (n1-1))*radius for i in range(n1)], 
+        [np.sin(i * np.pi / (n1-1))*radius for i in range(n1)],
+    ])
+    template[0] += x0
+    template[1] += y0
+    
+    template = normalize([template.T], side=template_size)[0]
+    return template
+
+def generate_semicircle(n1=200, radius=100, x0=0, y0=0, template_size=256):
     n1 = n1 // 2
     template = np.array([
         [np.cos(i*np.pi/(n1-1))*radius for i in range(n1)], 
@@ -1250,28 +1266,6 @@ def generate_semicircle(n1=200, radius=100, x0=100, y0=100, template_size=256):
     template = np.hstack([template, lastline])    
     template = normalize([template.T], side=template_size)[0]
     template = interpcurve(n1*2, template[:,0], template[:,1])
-    return template
-
-def generate_arc(n1=100, radius=100, x0=100, y0=100, template_size=256):
-    template = np.array([
-        [np.cos(i * np.pi / (n1-1))*radius for i in range(n1)], 
-        [np.sin(i * np.pi / (n1-1))*radius for i in range(n1)],
-    ])
-    template[0] += x0
-    template[1] += y0
-    
-    template = normalize([template.T], side=template_size)[0]
-    return template
-
-def generate_circle(n1=100, radius=100, x0=100, y0=100, template_size=256):
-    template = np.array([
-        [np.cos(i * 2 * np.pi/ (n1-1))*radius for i in range(n1)], 
-        [np.sin(i * 2 * np.pi/ (n1-1))*radius for i in range(n1)],
-    ])
-    template[0] += x0
-    template[1] += y0
-    
-    template = normalize([template.T], side=template_size)[0]
     return template
 
 def generate_zigzag(n1=200, num_fold = 3, template_size=256):
