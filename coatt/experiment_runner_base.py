@@ -103,6 +103,7 @@ class ExperimentRunnerBase(object):
         tr_iter = 0
         val_iter = 0
         best_prec = 0.0
+        
         for epoch in range(self._num_epochs):
             if (epoch + 1) // 3 == 0:
                 self.adjust_learning_rate(epoch + 1)

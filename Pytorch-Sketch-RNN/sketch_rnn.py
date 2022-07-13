@@ -90,6 +90,7 @@ scale_factor = calculate_normalizing_scale_factor(data)
 data = normalize(data)
 Nmax = max_size(data)
 
+
 ############################## function to generate a batch:
 def make_batch(batch_size, random=True, selected_idx=[]):
     # Return (max_length, batch_size, 5)
@@ -183,8 +184,8 @@ class DecoderRNN(nn.Module):
             hidden, cell = torch.split(torch.tanh(self.fc_hc(z)), hp.dec_hidden_size, 1)
             # the dimension of (h,c) should be (D∗num_layers,N,Hout)
             hidden_cell = (hidden.unsqueeze(0).contiguous(), cell.unsqueeze(0).contiguous())
-        
-        outputs,(hidden,cell) = self.lstm(inputs, hidden_cell)
+        # hidden: (D * num_layers, N, output_dim)
+        outputs,(hidden, cell) = self.lstm(inputs, hidden_cell)
         # in training we feed the lstm with the whole input in one shot
         # and use all outputs contained in 'outputs', while in generate
         # mode we just feed with the last generated sample:
@@ -192,26 +193,36 @@ class DecoderRNN(nn.Module):
             y = self.fc_params(outputs.view(-1, hp.dec_hidden_size))
         else:
             y = self.fc_params(hidden.view(-1, hp.dec_hidden_size))
+        
+        # training: (L * N, hidden_dim)
+        # inference: (1 * 1, hidden_dim)
+            
         # separate pen and mixture params:
-        params = torch.split(y,6,1)
+        params = torch.split(y,6,1) # A bunch of (L * N, 6)
         params_mixture = torch.stack(params[:-1]) # (M, L * B, 6)
-        params_pen = params[-1] # pen up/down
+        params_pen = params[-1] # A bunch of (L * N, 3)
+        
         # identify mixture params: (2,N,1)
-        pi,mu_x,mu_y,sigma_x,sigma_y,rho_xy = torch.split(params_mixture,1,2)
+        pi, mu_x, mu_y, sigma_x, sigma_y, rho_xy = torch.split(params_mixture, 1,2)
+        # (M, L * B, 1)
+        
         # preprocess params::
         if self.training:
             len_out = Nmax+1
         else:
             len_out = 1
         
-        # .transpose(0,1).squeeze() --> (L*B, M)           
-        pi = F.softmax(pi.transpose(0,1).squeeze(), dim=-1).view(len_out,-1,hp.M)
+        # .transpose(0,1).squeeze() --> (L * B, M)           
         sigma_x = torch.exp(sigma_x.transpose(0,1).squeeze()).view(len_out,-1,hp.M)
         sigma_y = torch.exp(sigma_y.transpose(0,1).squeeze()).view(len_out,-1,hp.M)
         rho_xy = torch.tanh(rho_xy.transpose(0,1).squeeze()).view(len_out,-1,hp.M)
+        
         mu_x = mu_x.transpose(0,1).squeeze().contiguous().view(len_out,-1,hp.M)
         mu_y = mu_y.transpose(0,1).squeeze().contiguous().view(len_out,-1,hp.M)
+        
+        pi = F.softmax(pi.transpose(0,1).squeeze(), dim=-1).view(len_out,-1,hp.M)
         q = F.softmax(params_pen, dim=-1).view(len_out,-1,3)
+        
         return pi,mu_x,mu_y,sigma_x,sigma_y,rho_xy,q,hidden,cell
 
 class Model():
@@ -263,8 +274,10 @@ class Model():
         # inputs is concatenation of z and batch_inputs
         inputs = torch.cat([batch_init, z_stack], 2) 
         # decode:
+        # (L, N, M)
         self.pi, self.mu_x, self.mu_y, self.sigma_x, self.sigma_y, self.rho_xy, self.q, _, _ = self.decoder(inputs, z)
         # prepare targets:
+        # dx: (L, N, M)
         mask, dx, dy, p = self.make_target(batch, lengths)
         
         # prepare optimizers:
@@ -272,7 +285,7 @@ class Model():
         self.decoder_optimizer.zero_grad()
         
         # update eta for LKL:
-        self.eta_step = 1-(1-hp.eta_min)*hp.R
+        self.eta_step = 1 - (1 - hp.eta_min) * hp.R
         
         # compute losses:
         LKL = self.kullback_leibler_loss()
@@ -307,8 +320,8 @@ class Model():
         return exp/norm
 
     def reconstruction_loss(self, mask, dx, dy, p, epoch):
-        pdf = self.bivariate_normal_pdf(dx, dy)
-        LS = -torch.sum(mask*torch.log(1e-5+torch.sum(self.pi * pdf, 2)))/float(Nmax*hp.batch_size)
+        pdf = self.bivariate_normal_pdf(dx, dy) # (L, N, M)
+        LS = -torch.sum(mask * torch.log(1e-5+torch.sum(self.pi * pdf, 2)))/float(Nmax * hp.batch_size)
         LP = -torch.sum(p*torch.log(self.q))/float(Nmax*hp.batch_size)
         return LS+LP
 
@@ -338,24 +351,24 @@ class Model():
         self.encoder.train(False)
         self.decoder.train(False)
         # encode:
-        z, _, _ = self.encoder(batch, 1)
+        z, _, _ = self.encoder(batch, 1) #(1, Nz)
         if use_cuda:
             sos = Variable(torch.Tensor([0,0,1,0,0]).view(1,1,-1).cuda())
         else:
             sos = Variable(torch.Tensor([0,0,1,0,0]).view(1,1,-1))
-        s = sos
+        s = sos # (1, 1, 5)
         seq_x = []
         seq_y = []
         seq_z = []
         hidden_cell = None
         for i in range(Nmax):
-            input = torch.cat([s,z.unsqueeze(0)],2)
+            input = torch.cat([s,z.unsqueeze(0)],2) # (1,1,5) + (1,1,Nz)
             # decode:
-            self.pi, self.mu_x, self.mu_y, self.sigma_x, self.sigma_y, \
-                self.rho_xy, self.q, hidden, cell = \
-                    self.decoder(input, z, hidden_cell)
+            self.pi, self.mu_x, self.mu_y, self.sigma_x, self.sigma_y, self.rho_xy, self.q, hidden, cell = self.decoder(input, z, hidden_cell)
+            
             hidden_cell = (hidden, cell)
             # sample from parameters:
+            
             s, dx, dy, pen_down, eos = self.sample_next_state()
             #------
             seq_x.append(dx)
@@ -478,6 +491,8 @@ def make_image(batch, lengths, sequence, epoch, name=None):
     plt.close("all")
 
 if __name__=="__main__":
+    
+    
     model = Model()
     for epoch in range(20001):
         model.train(epoch)

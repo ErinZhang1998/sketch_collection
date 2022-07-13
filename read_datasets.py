@@ -254,146 +254,6 @@ def quickdraw_to_vector(drawing_raw, side=256):
     return vector_part 
 
 
-def normalize_stroke(stroke, side):
-    '''
-    Helper function to normalize each stroke to a canvas of size "side".
-    '''
-    min_x, min_y = np.min(stroke, 0)
-    max_x, max_y = np.max(stroke, 0)
-    side_x = max_x - min_x
-    side_y = max_y - min_y
-    # print(side_x,side_y,np.isclose(side_x, [1e-7, -1e-7]),np.isclose(side_y, [1e-7, -1e-7]))
-    if np.any(np.isclose(side_x, [1e-9, -1e-9])) or np.any(np.isclose(side_y, [1e-9, -1e-9])):
-        return None
-
-    # long_side, short_side = max(side_x,side_y), min(side_x,side_y)
-    # short_side_new = (short_side/long_side) * side
-    if side_x > side_y:
-        # center coordinate relative to the upper left corner
-        # ccr_x, ccr_y = side * 0.5, short_side_new * 0.5
-        side_x_new, side_y_new = side, (side_y/side_x) * side
-    else:
-        # ccr_x, ccr_y = short_side_new*0.5, side * 0.5
-        side_x_new, side_y_new = (side_x/side_y) * side, side
-    
-    # upper left coordinate absolute
-    # ula_x = side * 0.5 - ccr_x
-    # ula_y = side * 0.5 - ccr_y
-    
-    stroke[:,0] -= min_x + side_x * 0.5
-    stroke[:,0] /= side_x
-    stroke[:,0] *= side_x_new
-    # stroke[:,0] += ula_x
-    
-    stroke[:,1] -= min_y + side_y * 0.5
-    stroke[:,1] /= side_y
-    stroke[:,1] *= side_y_new
-    # stroke[:,1] += ula_y
-    
-    return stroke
-
-def normalize(list_of_strokes, side=28):
-    '''
-    Normalizing each stroke in a list of strokes so that the longer side fits into a canvas of size "side" (scale and centered).
-    '''
-    normalized_strokes = []
-    for stroke in list_of_strokes:
-        stroke = np.asarray(stroke).astype(float)
-        stroke = normalize_stroke(stroke, side)
-        if stroke is not None:
-            normalized_strokes.append(stroke)
-    
-    return normalized_strokes
-
-def bspline(cv, n=100, degree=3):
-    """ Calculate n samples on a bspline
-
-        cv :      Array ov control vertices
-        n  :      Number of samples to return
-        degree:   Curve degree
-    """
-    
-
-    cv = np.asarray(cv)
-    count = cv.shape[0]
-
-    # Prevent degree from exceeding count-1, otherwise splev will crash
-    degree = np.clip(degree,1,count-1)
-
-    # Calculate knot vector
-    kv = np.array([0]*degree + list(range(count-degree+1)) + [count-degree]*degree,dtype='int')
-
-    # Calculate query range
-    u = np.linspace(0,(count-degree),n)
-
-    # Calculate result
-    return np.array(si.splev(u, (kv, cv.T, degree))).T
-
-
-def interpcurve(N, pX, pY):
-    #equally spaced in arclength
-    N = np.transpose(np.linspace(0,1,N))
-    #how many points will be uniformly interpolated?
-    nt = N.size
-    #number of points on the curve
-    n = pX.size
-    pxy=np.array((pX,pY)).T
-    # p1=pxy[0,:]
-    # pend=pxy[-1,:]
-    # last_segment= np.linalg.norm(np.subtract(p1,pend))
-    # epsilon= 10*np.finfo(float).eps
-    # #IF the two end points are not close enough lets close the curve
-    # if last_segment > epsilon*np.linalg.norm(np.amax(abs(pxy),axis=0)):
-    #     pxy=np.vstack((pxy,p1))
-    #     nt = nt + 1
-    # else:
-    #     print('Contour already closed')
-    
-    
-
-    pt=np.zeros((nt,2))
-    #Compute the chordal arclength of each segment.
-    chordlen = (np.sum(np.diff(pxy,axis=0)**2,axis=1))**(1/2)
-    #Normalize the arclengths to a unit total
-    chordlen = chordlen/np.sum(chordlen)
-    #cumulative arclength
-    cumarc = np.append(0,np.cumsum(chordlen))
-
-    tbins= np.digitize(N, cumarc) # bin index in which each N is in
-
-    #catch any problems at the ends
-#     tbins[np.where(tbins<=0 | (N<=0))]=1
-#     tbins[np.where(tbins >= n | (N >= 1))] = n - 1   
-    
-    tbins[np.where(np.bitwise_or(tbins<=0 ,(N<=0)))] = 1
-    tbins[np.where(np.bitwise_or(tbins >= n , (N >= 1)))] = n - 1
-
-    #s = np.divide((N - cumarc[tbins]),chordlen[tbins-1])
-    #pt = pxy[tbins,:] + np.multiply((pxy[tbins,:] - pxy[tbins-1,:]),(np.vstack([s]*2)).T)
-    
-    s = np.divide((N - cumarc[tbins-1]),chordlen[tbins-1]) 
-    pt = pxy[tbins-1,:] + np.multiply((pxy[tbins,:] - pxy[tbins-1,:]),(np.vstack([s]*2)).T)
-
-    return pt 
-
-def process_quickdraw_to_stroke(drawing_raw, side=28, b_spline_degree=3, b_spline_num_sampled_points=100):
-    # normalize to 256 first, skip this step?
-    #strokes = quickdraw_to_vector(drawing_raw)
-    
-    drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0)
-    drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0)
-    pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
-    strokes = np.vsplit(drawing_raw[:,:2].astype(float), pen_lift_indices)[:-1]
-    
-    strokes_normalized = normalize(strokes, side=side)
-    strokes_spline_fitted = []
-    for stroke in strokes_normalized:
-        stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
-        strokes_spline_fitted.append(stroke_sampled)
-    
-    return strokes_spline_fitted
-
-
 def transform_spg_2_quickdraw(
     drawing_raw, 
     label_selected=[], 
@@ -540,7 +400,6 @@ def render_img(
         plt.show()
     return image
 
-
 def data2abspoints(data, label_selected=[]):
     color_map = {
         0 : (255,0,0), #red
@@ -674,9 +533,6 @@ def show_these_sketches(
 
     plt.show()
     plt.close()
-
-
-
 
 def to_doodler(json_obj, indices, target_label, label_to_name_dict, root_folder, category_name):
     '''
@@ -1011,7 +867,6 @@ def new_df(dfs, df_idx_to_task_idxs, skip=[]):
     dfn = pd.DataFrame.from_dict(data)
     return dfn
 
-
 class Pair(object):
     def __init__(self, p):
         self.x, self.y = p[0],p[1]
@@ -1124,6 +979,123 @@ def all_pair_combination(dfn, wrong_rows = []):
         columns=['word1', 'word2', 'total_occurrence', 'correct#', 'correct%', 'correct_row_idx', 'incorrect_row_idx'],
     )
     return all_pair_df
+
+#---------------------- Primitive fitting
+
+def normalize_stroke(stroke, side):
+    '''
+    Helper function to normalize each stroke to a canvas of size "side".
+    '''
+    min_x, min_y = np.min(stroke, 0)
+    max_x, max_y = np.max(stroke, 0)
+    side_x = max_x - min_x
+    side_y = max_y - min_y
+    # print(side_x,side_y,np.isclose(side_x, [1e-7, -1e-7]),np.isclose(side_y, [1e-7, -1e-7]))
+    if np.any(np.isclose(side_x, [1e-9, -1e-9])) or np.any(np.isclose(side_y, [1e-9, -1e-9])):
+        return None
+
+    # long_side, short_side = max(side_x,side_y), min(side_x,side_y)
+    # short_side_new = (short_side/long_side) * side
+    if side_x > side_y:
+        # center coordinate relative to the upper left corner
+        # ccr_x, ccr_y = side * 0.5, short_side_new * 0.5
+        side_x_new, side_y_new = side, (side_y/side_x) * side
+    else:
+        # ccr_x, ccr_y = short_side_new*0.5, side * 0.5
+        side_x_new, side_y_new = (side_x/side_y) * side, side
+    
+    # upper left coordinate absolute
+    # ula_x = side * 0.5 - ccr_x
+    # ula_y = side * 0.5 - ccr_y
+    
+    stroke[:,0] -= min_x + side_x * 0.5
+    stroke[:,0] /= side_x
+    stroke[:,0] *= side_x_new
+    # stroke[:,0] += ula_x
+    
+    stroke[:,1] -= min_y + side_y * 0.5
+    stroke[:,1] /= side_y
+    stroke[:,1] *= side_y_new
+    # stroke[:,1] += ula_y
+    
+    return stroke
+
+def normalize(list_of_strokes, side=28):
+    '''
+    Normalizing each stroke in a list of strokes so that the longer side fits into a canvas of size "side" (scale and centered).
+    '''
+    normalized_strokes = []
+    for stroke in list_of_strokes:
+        stroke = np.asarray(stroke).astype(float)
+        stroke = normalize_stroke(stroke, side)
+        if stroke is not None:
+            normalized_strokes.append(stroke)
+    
+    return normalized_strokes
+
+def bspline(cv, n=100, degree=3):
+    """ Calculate n samples on a bspline
+
+        cv :      Array ov control vertices
+        n  :      Number of samples to return
+        degree:   Curve degree
+    """
+    
+
+    cv = np.asarray(cv)
+    count = cv.shape[0]
+
+    # Prevent degree from exceeding count-1, otherwise splev will crash
+    degree = np.clip(degree,1,count-1)
+
+    # Calculate knot vector
+    kv = np.array([0]*degree + list(range(count-degree+1)) + [count-degree]*degree,dtype='int')
+
+    # Calculate query range
+    u = np.linspace(0,(count-degree),n)
+
+    # Calculate result
+    return np.array(si.splev(u, (kv, cv.T, degree))).T
+
+def interpcurve(N, pX, pY):
+    #equally spaced in arclength
+    N = np.transpose(np.linspace(0,1,N))
+    #how many points will be uniformly interpolated?
+    nt = N.size
+    #number of points on the curve
+    n = pX.size
+    pxy=np.array((pX,pY)).T
+    pt=np.zeros((nt,2))
+    #Compute the chordal arclength of each segment.
+    chordlen = (np.sum(np.diff(pxy,axis=0)**2,axis=1))**(1/2)
+    #Normalize the arclengths to a unit total
+    chordlen = chordlen/np.sum(chordlen)
+    #cumulative arclength
+    cumarc = np.append(0,np.cumsum(chordlen))
+
+    tbins= np.digitize(N, cumarc) # bin index in which each N is in
+    tbins[np.where(np.bitwise_or(tbins<=0 ,(N<=0)))] = 1
+    tbins[np.where(np.bitwise_or(tbins >= n , (N >= 1)))] = n - 1
+    s = np.divide((N - cumarc[tbins-1]),chordlen[tbins-1]) 
+    pt = pxy[tbins-1,:] + np.multiply((pxy[tbins,:] - pxy[tbins-1,:]),(np.vstack([s]*2)).T)
+    return pt 
+
+def process_quickdraw_to_stroke(drawing_raw, side=28, b_spline_degree=3, b_spline_num_sampled_points=100):
+    # normalize to 256 first, skip this step?
+    #strokes = quickdraw_to_vector(drawing_raw)
+    
+    drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0)
+    drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0)
+    pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
+    strokes = np.vsplit(drawing_raw[:,:2].astype(float), pen_lift_indices)[:-1]
+    
+    strokes_normalized = normalize(strokes, side=side)
+    strokes_spline_fitted = []
+    for stroke in strokes_normalized:
+        stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
+        strokes_spline_fitted.append(stroke_sampled)
+    
+    return strokes_spline_fitted
 
 def process_quickdraw_to_stroke_no_normalize(drawing_raw, b_spline_degree=3, b_spline_num_sampled_points=100):
     drawing_raw = np.asarray(drawing_raw)
@@ -1370,8 +1342,6 @@ def square_from_line(data):
         x1,x2 = mins[0], maxs[0]
     return generate_rectangles(x1,y1,x2,y2)
     
-    
-
 def transform_line(src, dst):
     import scipy.optimize
 
@@ -1444,7 +1414,6 @@ def transform_line(src, dst):
     Tr = np.matrix(np.vstack((T,[0,0,1]))).A
     return Tr
 
-
 def get_transform(template, data, projective=True):
     src_pts = template.astype(np.float32).reshape(-1,1,2)
     dst_pts = data.astype(np.float32).reshape(-1,1,2)
@@ -1458,15 +1427,6 @@ def get_transform(template, data, projective=True):
         affineM = np.concatenate([affineM, np.array([[0,0,1]])], axis=0)
         result = cv2.transform(np.array([template], copy=True).astype(np.float32), affineM)[0][:,:-1]
         return affineM, result
-
-TEMPLATE_DICT = {
-    'arc' : lambda n : generate_arc(n1=n, radius=100, x0=100, y0=100, template_size=256),
-    'circle' : lambda n : generate_circle(n1=n, radius=100, x0=100, y0=100, template_size=256),
-    'square' : lambda n : generate_square(n1=n, template_size=256),
-    'semicircle' : lambda n : generate_semicircle(n1=n, radius=100, x0=100, y0=100, template_size=256),
-    'zigzag3' : lambda n : generate_zigzag3(n1=n, template_size=256),
-    'zigzag1' : lambda n : generate_zigzag1(n1=n, template_size=256),
-}
 
 def get_sequence_colors(n, color_func = plt.cm.Reds):
     '''

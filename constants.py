@@ -24,7 +24,9 @@ face_parts_idx_dict_doodler = {
     0: "eyes",
     1: "nose",
     2: "mouth",
+    3: "ear",
     4: "hair",
+    5: "moustache",
     6: "face",
 }
 # part_idx_to_words = {
@@ -61,10 +63,10 @@ angel_json = json.load(open(
 
 angel_parts_idx = [0,1,2,3,4,5,7]
 angel_parts_idx_dict = {
-    0:"halo",1 : "eyes",2:"nose",3:"mouth",4:"outline of face",5:"body", 6: "torso", 7:"wings",
+    0:"halo",1 : "eyes",2:"nose",3:"mouth",4:"face",5:"body", 6: "limbs", 7:"wings",
 }
 
-angel_parts_idx_dict_doodler = {0:"halo", 1 : "eyes", 2:"nose", 3:"mouth", 4:"face", 5:"body", 7:"wings"}
+angel_parts_idx_dict_doodler = {0:"halo", 1 : "eyes", 2:"nose", 3:"mouth", 4:"face", 5:"body", 6: "limbs", 7:"wings"}
 
 angel_part_image_indices = None
 with open('/raid/xiaoyuz1/angel_part_image_indices.pickle', 'rb') as f:
