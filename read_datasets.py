@@ -15,7 +15,7 @@ import cv2
 import pdb
 import PIL.ImageOps
 import itertools, collections
-import constants as CONST
+# import constants as CONST
 from scipy.spatial import distance
 import base64
 import torch
