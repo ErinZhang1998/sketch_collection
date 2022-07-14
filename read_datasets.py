@@ -683,43 +683,43 @@ def get_base64_data(png_to_drawing_dict, selected_pairs, low, high, category_nam
         base64_data.append(str(encoded)[2:-1])
     return base64_data
 
-result_folders = [
-    '/raid/xiaoyuz1/amazon_turk/2022_03_17_release',# no.0
-    '/raid/xiaoyuz1/amazon_turk/2022_03_21_release', # no.1
-    '/raid/xiaoyuz1/amazon_turk/2022_03_22_release', # no.2
-    '/raid/xiaoyuz1/amazon_turk/2022_03_23_release', # no.3
-    '/raid/xiaoyuz1/amazon_turk/2022_03_23_release_2', # no.4
-    '/raid/xiaoyuz1/amazon_turk/2022_03_24_release', # no.5
-    '/raid/xiaoyuz1/amazon_turk/2022_03_24_release_2', # no.6
-    '/raid/xiaoyuz1/amazon_turk/2022_04_04_release', # no.7
-    '/raid/xiaoyuz1/amazon_turk/2022_04_04_release_2', # no.8
-    '/raid/xiaoyuz1/amazon_turk/2022_04_05_release', # no.9
-    '/raid/xiaoyuz1/amazon_turk/2022_04_06_release', # no.10
-    '/raid/xiaoyuz1/amazon_turk/2022_04_06_release_2', # no.11
-    '/raid/xiaoyuz1/amazon_turk/2022_04_06_release_3', # no.12
-]
+# result_folders = [
+#     '/raid/xiaoyuz1/amazon_turk/2022_03_17_release',# no.0
+#     '/raid/xiaoyuz1/amazon_turk/2022_03_21_release', # no.1
+#     '/raid/xiaoyuz1/amazon_turk/2022_03_22_release', # no.2
+#     '/raid/xiaoyuz1/amazon_turk/2022_03_23_release', # no.3
+#     '/raid/xiaoyuz1/amazon_turk/2022_03_23_release_2', # no.4
+#     '/raid/xiaoyuz1/amazon_turk/2022_03_24_release', # no.5
+#     '/raid/xiaoyuz1/amazon_turk/2022_03_24_release_2', # no.6
+#     '/raid/xiaoyuz1/amazon_turk/2022_04_04_release', # no.7
+#     '/raid/xiaoyuz1/amazon_turk/2022_04_04_release_2', # no.8
+#     '/raid/xiaoyuz1/amazon_turk/2022_04_05_release', # no.9
+#     '/raid/xiaoyuz1/amazon_turk/2022_04_06_release', # no.10
+#     '/raid/xiaoyuz1/amazon_turk/2022_04_06_release_2', # no.11
+#     '/raid/xiaoyuz1/amazon_turk/2022_04_06_release_3', # no.12
+# ]
 
-result_csv_files = [
-    'Batch_4693878_batch_results.csv',# no.0
-    'Batch_4696268_batch_results.csv',# no.1
-    'Batch_4697008_batch_results.csv',# no.2
-    'Batch_4697913_batch_results.csv',# no.3
-    'Batch_4698198_batch_results.csv',# no.4
-    'Batch_4698860_batch_results.csv',# no.5
-    'Batch_4699064_batch_results.csv',# no.6
-    'Batch_4706822_batch_results.csv',# no.7
-    'Batch_4707033_batch_results.csv',# no.8
-    'Batch_4707866_batch_results.csv',# no.9
-    'Batch_4708689_batch_results.csv',# no.10
-    'Batch_4708952_batch_results.csv',# no.11
-    'Batch_4709244_batch_results.csv',# no.12
-]
-selected_pairss = [
-    np.load('/raid/xiaoyuz1/amazon_turk/2022_03_17_release/png_list.npy'),
-    np.load('/raid/xiaoyuz1/amazon_turk/2022_03_21_release/png_list.npy'),
-    np.load('/raid/xiaoyuz1/amazon_turk/2022_04_04_release/png_list.npy'),
-    np.load('/raid/xiaoyuz1/amazon_turk/2022_04_06_release/png_list.npy'),
-]
+# result_csv_files = [
+#     'Batch_4693878_batch_results.csv',# no.0
+#     'Batch_4696268_batch_results.csv',# no.1
+#     'Batch_4697008_batch_results.csv',# no.2
+#     'Batch_4697913_batch_results.csv',# no.3
+#     'Batch_4698198_batch_results.csv',# no.4
+#     'Batch_4698860_batch_results.csv',# no.5
+#     'Batch_4699064_batch_results.csv',# no.6
+#     'Batch_4706822_batch_results.csv',# no.7
+#     'Batch_4707033_batch_results.csv',# no.8
+#     'Batch_4707866_batch_results.csv',# no.9
+#     'Batch_4708689_batch_results.csv',# no.10
+#     'Batch_4708952_batch_results.csv',# no.11
+#     'Batch_4709244_batch_results.csv',# no.12
+# ]
+# selected_pairss = [
+#     np.load('/raid/xiaoyuz1/amazon_turk/2022_03_17_release/png_list.npy'),
+#     np.load('/raid/xiaoyuz1/amazon_turk/2022_03_21_release/png_list.npy'),
+#     np.load('/raid/xiaoyuz1/amazon_turk/2022_04_04_release/png_list.npy'),
+#     np.load('/raid/xiaoyuz1/amazon_turk/2022_04_06_release/png_list.npy'),
+# ]
 
 def compile_face_dfs():
     
