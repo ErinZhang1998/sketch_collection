@@ -4,6 +4,7 @@ import numpy as np
 import pickle
 from collections import defaultdict
 import wandb 
+wandb.login()
 import argparse
 
 import torch
@@ -253,7 +254,7 @@ class Trainer():
         self.args = args 
         
         if args.enable_wandb:
-            wandb.login()
+            
             wandb.init(project=args.wandb_project_name, entity=args.wandb_project_entity, config=hp.__dict__)
         
         self.enable_wandb = args.enable_wandb and not wandb.run is None
@@ -393,7 +394,6 @@ class Trainer():
         torch.save({
             'iteration' : step,
             'model_state_dict': self.model.state_dict(),
-            'args': args,
         }, torch_path_name)
 
 def main():
