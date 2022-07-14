@@ -1191,6 +1191,17 @@ def process_quickdraw_to_part_convex_hull(drawing_raw, parts_indices, b_spline_n
     
     return strokes_spline_fitted
 
+def process_all_to_part_convex_hull(drawing_arr, part_indices, num_sampled_points):
+    results = {}
+    for idx, drawing_raw in enumerate(drawing_arr):
+        parts = process_quickdraw_to_part_convex_hull(
+            drawing_raw,
+            part_indices,
+            b_spline_num_sampled_points=num_sampled_points,
+        )
+        results[idx] = parts
+    return results
+
 def squared_l2_error(src, dst):
     d = np.zeros(np.shape(src))
     d[:,0] = src[:,0]-dst[:,0]
@@ -1420,25 +1431,11 @@ def get_transform(template, data, projective=True):
     
     if projective:
         projectiveM, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-        result = cv2.perspectiveTransform(src_pts, projectiveM).reshape(-1,2)
-        return projectiveM, result
+        return projectiveM
     else:
         affineM = cv2.estimateAffine2D(src_pts, dst_pts, cv2.RANSAC)[0]
         affineM = np.concatenate([affineM, np.array([[0,0,1]])], axis=0)
-        result = cv2.transform(np.array([template], copy=True).astype(np.float32), affineM)[0][:,:-1]
-        return affineM, result
-
-def get_sequence_colors(n, color_func = plt.cm.Reds):
-    '''
-    Easier to print sequence colors
-    '''
-    px = np.linspace(0,10,n)
-    py = np.random.randn(n)
-    pz = np.linspace(0,1,n) 
-    colors = color_func(np.linspace(0,1,n))
-    colors[:,-1] = pz 
-    
-    return colors
+        return affineM
 
 def get_transform_smallest_mse(data, template_dict, use_projective=True):
     min_template_name, min_template_mse = None, np.inf
@@ -1446,7 +1443,7 @@ def get_transform_smallest_mse(data, template_dict, use_projective=True):
     for template_name, template in template_dict.items():
         # template = template_func(n)
         try:
-            M, result = get_transform(template, data, projective=use_projective)
+            M = get_transform(template, data, projective=use_projective)
         except:
             continue
             # try:
@@ -1457,6 +1454,10 @@ def get_transform_smallest_mse(data, template_dict, use_projective=True):
             #     M, result = get_transform(template, data, projective=use_projective)
             # except:
             #     continue
+        if use_projective:
+            result = cv2.perspectiveTransform(template, M).reshape(-1,2)
+        else:
+            result = cv2.transform(np.array([template], copy=True).astype(np.float32), M)[0][:,:-1]
         mse = mean_squared_error(result, data)
         if mse < min_template_mse:
             min_template_name = template_name
@@ -1475,36 +1476,72 @@ def get_transform_smallest_mse(data, template_dict, use_projective=True):
     else:
         return min_M.reshape(-1,), min_template_name, min_template_mse
 
-def get_transformed_template(template, data, M, projective=True):
-    src_pts = template.astype(np.float32).reshape(-1,1,2)
-    
-    if projective:
-        result = cv2.perspectiveTransform(src_pts, M).reshape(-1,2)
-    else:
-        result = cv2.transform(np.array([template], copy=True).astype(np.float32), M)[0][:,:-1]
-    mse = mean_squared_error(result, data)
-    return result, mse
+def plot_transformed_data(template, data, transform_mat, w=256, h=256, use_projective=False):
+    _, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
 
-def plot_primitives(w=256, h=256, n=200, num_pngs_per_row = 2, row_figsize = 3, column_figsize = 3):
-    num_rows = len(TEMPLATE_DICT) // num_pngs_per_row
-    if num_rows * num_pngs_per_row < len(TEMPLATE_DICT):
+    if use_projective:
+        result = cv2.perspectiveTransform(template, transform_mat).reshape(-1,2)
+    else:
+        result = cv2.transform(np.array([template], copy=True).astype(np.float32), transform_mat)[0][:,:-1]
+    ax1.scatter(result[:,0], result[:,1], s=1, c='r')
+    ax2.scatter(data[:,0], data[:,1], alpha=0.5, s=1, c='g')
+
+    ax1.axis(xmin=0,xmax=w)
+    ax1.axis(ymin=h,ymax=0)
+
+    ax2.axis(xmin=0,xmax=w)
+    ax2.axis(ymin=h,ymax=0)
+
+    plt.show()
+
+def plot_primitives(template_dict, w=256, h=256, num_pngs_per_row = 2, row_figsize = 3, column_figsize = 3):
+    """Plot primitives in a grid
+
+    Parameters
+    ----------
+    template_dict : dict
+        Mapping from template name ("arc") to template sequence
+    w : int, optional
+        width of canvas, by default 256
+    h : int, optional
+        height of canvas, by default 256
+    num_pngs_per_row : int, optional
+        number of plots to show per row, by default 2
+    row_figsize : int, optional
+        width of each subplot, by default 3
+    column_figsize : int, optional
+        height of each subplot, by default 3
+    """
+    num_rows = len(template_dict) // num_pngs_per_row
+    if num_rows * num_pngs_per_row < len(template_dict):
         num_rows += 1
 
     fig = plt.figure(figsize=(num_pngs_per_row * row_figsize, num_rows * column_figsize)) 
     fig.patch.set_alpha(1)  # solution
 
-    for index, (template_name, template_func) in enumerate(TEMPLATE_DICT.items()):
-        template = template_func(n)
+    for index, (template_name, template) in enumerate(template_dict.items()):
         
         plt.subplot(num_rows, num_pngs_per_row, index+1)
         plt.scatter(template[:,0], template[:,1], s=1, c='r')
         plt.title(template_name)
         # plt.axis('off')
-        plt.xlim(0,w)
-        plt.ylim(h,0)
+        plt.xlim(-w,w)
+        plt.ylim(h,-h)
 
     plt.show()
     plt.close()
+
+def get_sequence_colors(n, color_func = plt.cm.Reds):
+    '''
+    Easier to print sequence colors
+    '''
+    px = np.linspace(0,10,n)
+    py = np.random.randn(n)
+    pz = np.linspace(0,1,n) 
+    colors = color_func(np.linspace(0,1,n))
+    colors[:,-1] = pz 
+    
+    return colors
 
 # ------------------------------------------------------------------------------------------------
 def get_img(img_path):

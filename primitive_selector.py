@@ -1,19 +1,17 @@
-from re import L
-import torch
-import torch.nn as nn
-import torch.nn.functional as fn
-import torch.nn.utils.rnn as rnn
-from torch import optim
-from torch.utils.data import DataLoader
-
+import read_datasets as rd
+import constants as CONST
 import numpy as np 
 import pickle
-
 from collections import defaultdict
-from torch.utils.data import Dataset
-
 import wandb 
 import argparse
+
+import torch
+import torch.nn as nn
+import torch.nn.utils.rnn as rnn
+from torch import optim
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
 
 class HParams():
     def __init__(self):
@@ -46,6 +44,106 @@ def get_args():
     args = parser.parse_args()
     return args
 
+def create_split(arr_length):
+    """Create train,dev,test split for a given sequence
+
+    Parameters
+    ----------
+    arr_length : int 
+        Length of the data to create split for
+
+    Returns
+    -------
+    split_dict : dict
+        A dictionary mapping data index to split, {"train", "dev", "test"} 
+    """
+    import random
+    L = list(range(arr_length))
+    split_dict = dict(zip(L, ["unassigned"] * arr_length))
+    L.sort()  
+    random.seed(1028)
+    random.shuffle(L) 
+
+    split_1 = int(0.8 * arr_length)
+    split_2 = int(0.9 * arr_length)
+    train_L = L[:split_1]
+    split_dict.update(dict(zip(train_L, ["train"] * len(train_L))))
+    dev_L = L[split_1:split_2]
+    split_dict.update(dict(zip(dev_L, ["dev"] * len(dev_L))))
+    test_L = L[split_2:]
+    split_dict.update(dict(zip(test_L, ["test"] * len(test_L))))
+
+    return split_dict
+
+def prepare_data(df, templates, num_sampled_points = 200, use_projective = False):
+    """Prepare and face and angel data for PrimitiveSelector training.
+
+    Parameters
+    ----------
+    df : panda.DataFrame
+        _description_
+    templates : dict
+        Mapping from template index to (template name, template numpy array (num_sampled_points, 2))
+    num_sampled_points : int, optional
+        Number of points to sample in each part, by default 200
+    use_projective : bool, optional
+        Whether to predict parameters for affine or projective transformation, by default False
+
+    Returns
+    -------
+    all_data : list of dict
+        List containing all the data to train PrimitiveSelector model.
+    """
+    import cv2
+    from sklearn.metrics import mean_squared_error
+    from tqdm import tqdm
+
+    split_dict = create_split(len(df))
+    all_data = []
+    face_sketches = CONST.face_json['train_data']
+    angel_sketches = CONST.angel_json['train_data']
+    face_points = rd.process_all_to_part_convex_hull(face_sketches, list(CONST.face_parts_idx_dict_doodler.keys()), num_sampled_points)
+    angel_points = rd.process_all_to_part_convex_hull(angel_sketches, list(CONST.angel_parts_idx_dict_doodler.keys()), num_sampled_points)
+    
+    for i in tqdm(range(len(df))):
+        entry = df.iloc[i]
+        if entry['category'] == 'face':
+            raw_desc = "{} {}".format(entry['text_1'], CONST.face_parts_idx_dict_doodler[entry['part']])
+            desc = "{} {}".format(entry['no_punc_str_1'], CONST.face_parts_idx_dict_doodler[entry['part']])
+            sketch_data = face_points[entry['image_1']]
+        else:
+            raw_desc = "{} {}".format(entry['text_1'], CONST.angel_parts_idx_dict_doodler[entry['part']])
+            desc = "{} {}".format(entry['no_punc_str_1'], CONST.angel_parts_idx_dict_doodler[entry['part']])
+            sketch_data = angel_points[entry['image_1']]
+        
+        min_template_squared_error = np.inf
+        min_M = None
+        min_template_idx = None
+        for template_idx, (_, template) in templates.items():
+            data = sketch_data[entry['part']]
+            M = rd.get_transform(template, data, projective=use_projective)
+            if use_projective:
+                result = cv2.perspectiveTransform(template, M).reshape(-1,2)
+            else:
+                result = cv2.transform(np.array([template], copy=True).astype(np.float32), M)[0][:,:-1]
+            squared_error = np.sum(mean_squared_error(result, data, multioutput='raw_values'))
+            if squared_error < min_template_squared_error:
+                min_template_idx = template_idx
+                min_template_squared_error = squared_error
+                min_M = M.reshape(-1,)
+        all_data.append( {
+            'category' : entry['category'],
+            'image_idx' : entry['image_1'],
+            'part' : entry['part'],
+            'raw' : raw_desc,
+            'processed' : desc,
+            'primitive_type' : int(min_template_idx),
+            'M' : min_M,
+            'error' : min_template_squared_error,
+            'split' : split_dict[i],
+        })
+    return all_data
+
 def preprocess_dataset_language(path):
     f = open(path, "rb")
     data_raw = pickle.load(f)
@@ -53,7 +151,7 @@ def preprocess_dataset_language(path):
     pad = q2i["<pad>"]
     UNK = q2i["<unk>"]
     
-    for _,info in data_raw.items():
+    for info in data_raw:
         description = info['processed']
         [q2i[x] for x in description.lower().strip().split(" ")]
     return q2i
@@ -179,13 +277,18 @@ class Trainer():
         self.ce_loss = nn.CrossEntropyLoss()
     
     def make_target(self, affine_paramss):
-        """create ground truth for training transformation parameters by stacking M copies of each parameter
+        """Create ground truth for training transformation parameters by stacking M copies of each parameter
 
-        Args:
-            affine_paramss: torch.Tensor (N, num_transformation_params)
+        Parameters
+        ----------
+        affine_paramss : torch.Tensor
+            (N, num_transformation_params)
 
-        Returns:
-            a torch.Tensor list of size num_transformation_params, one for each parameter. Each array has size (N, M)
+        Returns
+        -------
+        list of torch.Tensor
+            GT for calculating log likelihood loss, each has shape (N, M)
+            list of size num_transformation_params
         """
         return [
             torch.stack([affine_paramss[:,i]] * self.hp.M, 1) for i in range(affine_paramss.shape[1])
@@ -194,21 +297,28 @@ class Trainer():
     def normal_pdf(self, x, mu, sigma):
         """Calculate univariate normal pdf for GMM
 
-        Args:
-            x : torch.Tensor (N, M) 
-                ground truth parameter
-            mu : torch.Tensor (N, M)
-                predicted GMM means
-            sigma : torch.Tensor (N, M)
-                predicted GMM standard deviation
+        Parameters
+        ----------
+        x : torch.Tensor
+            (N, M)
+        mu : torch.Tensor
+            (N, M)
+            predicted GMM means
+        sigma : torch.Tensor
+            (N, M)
+            predicted GMM standard deviation
 
-        Returns:
-            pdf : torch.Tensor (N, M)
+        Returns
+        -------
+        pdf : torch.Tensor
+            (N, M)
+            predicted probability
         """
         z = ( (x - mu) / sigma ) ** 2.0
         exp = torch.exp(-z / 2.0)
         norm = torch.sqrt(2.0 * np.pi) * sigma
-        return exp / norm
+        pdf = exp / norm
+        return pdf
     
     def log_losses(self, params_gt_list, pi_list, mu_list, sigma_list):
         """
@@ -301,5 +411,5 @@ def main():
     trainer = Trainer(train_dataset, val_dataset, hp, args)
     trainer.train()
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     main()
