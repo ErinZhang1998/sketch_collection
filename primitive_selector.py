@@ -132,7 +132,11 @@ def prepare_data(df, templates, num_sampled_points = 200, use_projective = False
                 min_template_idx = template_idx
                 min_template_squared_error = squared_error
                 min_M = M.reshape(-1,)
-        all_data.append( {
+        transform_mat = min_M.reshape(3,3)
+        theta, scale_mat, shear_mat = rd.decompose_affine(transform_mat)
+        
+        
+        info = {
             'category' : entry['category'],
             'image_idx' : entry['image_1'],
             'part' : entry['part'],
@@ -142,7 +146,22 @@ def prepare_data(df, templates, num_sampled_points = 200, use_projective = False
             'M' : min_M,
             'error' : min_template_squared_error,
             'split' : split_dict[i],
-        })
+        }
+        info["theta"] = theta
+        info["sx"] = scale_mat[0][0]
+        info["sy"] = scale_mat[1][1]
+        info["hx"] = shear_mat[0][1]
+        info["tx"] = transform_mat[0][2]
+        info["ty"] = transform_mat[1][2]
+        T_rotate = rd.get_rotation_matrix(theta)
+        T_scale = rd.get_scale_matrix(info["sx"], info["sy"])
+        T_shear = rd.get_shear_matrix(info["hx"], 0)
+        T_translate = T_translate = rd.get_translation_matrix(info["tx"], info["ty"])
+        T = T_translate @ T_rotate @ T_scale @ T_shear
+
+        if not rd.check_close(info["M"].reshape(-1,), T.reshape(-1,)):
+            print(i)
+        all_data.append(info)
     return all_data
 
 def preprocess_dataset_language(path):

@@ -48,7 +48,6 @@ def get_affine(theta, scale_mat, shear_mat):
                                      [np.sin(theta), np.cos(theta)]])
     return recovered_rot_matrix @ scale_mat @ shear_mat
 
-
 def get_translation_matrix(tx,ty):
     T = np.asarray([
         [1,0,tx],
@@ -229,7 +228,6 @@ def get_features(feature_folder_template, part_idx_list):
                 feature_dict[part_idx][int(pathi.split("/")[-1].split(".")[0])] = feati
     return feature_dict
 
-
 def quickdraw_to_vector(drawing_raw, side=256):
     '''
     Very similar functionality to transform_spg_2_quickdraw, but used to cluster strokes from 
@@ -277,7 +275,6 @@ def quickdraw_to_vector(drawing_raw, side=256):
         stroke[:,1] *= side
         vector_part.append(stroke)
     return vector_part 
-
 
 def transform_spg_2_quickdraw(
     drawing_raw, 
@@ -723,7 +720,6 @@ def get_base64_data(png_to_drawing_dict, selected_pairs, low, high, category_nam
 #     '/raid/xiaoyuz1/amazon_turk/2022_04_06_release_2', # no.11
 #     '/raid/xiaoyuz1/amazon_turk/2022_04_06_release_3', # no.12
 # ]
-
 # result_csv_files = [
 #     'Batch_4693878_batch_results.csv',# no.0
 #     'Batch_4696268_batch_results.csv',# no.1
@@ -1007,6 +1003,16 @@ def all_pair_combination(dfn, wrong_rows = []):
 
 #---------------------- Primitive fitting
 
+def center_stroke(stroke):
+    min_x, min_y = np.min(stroke, 0)
+    max_x, max_y = np.max(stroke, 0)
+    side_x = max_x - min_x
+    side_y = max_y - min_y
+
+    stroke[:,0] -= min_x + side_x * 0.5
+    stroke[:,1] -= min_y + side_y * 0.5
+    return stroke
+
 def normalize_stroke(stroke, side):
     '''
     Helper function to normalize each stroke to a canvas of size "side".
@@ -1243,7 +1249,8 @@ def generate_circle(n1=100, radius=100, x0=0, y0=0, template_size=256):
     template[0] += x0
     template[1] += y0
     template = template.T
-    template = normalize([template], side=template_size)[0]
+    # template = normalize([template], side=template_size)[0]
+    template = center_stroke(template)
     return template
 
 def generate_arc(n1=100, radius=100, x0=0, y0=0, template_size=256):
@@ -1254,7 +1261,8 @@ def generate_arc(n1=100, radius=100, x0=0, y0=0, template_size=256):
     template[0] += x0
     template[1] += y0
     template = template.T
-    template = normalize([template], side=template_size)[0]
+    # template = normalize([template], side=template_size)[0]
+    template = center_stroke(template)
     return template
 
 def generate_semicircle(n1=200, radius=100, x0=0, y0=0, template_size=256):
@@ -1270,20 +1278,21 @@ def generate_semicircle(n1=200, radius=100, x0=0, y0=0, template_size=256):
     ys = np.ones(n1+1) * template[1][-1]
     
     lastline = np.hstack([xs.reshape(-1,1), ys.reshape(-1,1)]).T[:,1:]
-    template = np.hstack([template, lastline])    
-    template = normalize([template.T], side=template_size)[0]
+    template = np.hstack([template, lastline]).T    
+    # template = normalize([template.T], side=template_size)[0]
+    template = center_stroke(template)
     template = interpcurve(n1*2, template[:,0], template[:,1])
     return template
 
-def generate_zigzag(n1=200, num_fold = 3, template_size=256):
-    unit = 10
+def generate_zigzag(n1=200, num_fold = 3, side_length=10, template_size=256):
+    
     n = 20
     side_list = []
     for fold_idx in range(num_fold):
         start_idx = fold_idx * 2
-        x1,y1 = unit * start_idx, 0
-        x2,y2 = unit * (start_idx+1), unit
-        x3,y3 = unit * (start_idx+2), 0
+        x1,y1 = side_length * start_idx, 0
+        x2,y2 = side_length * (start_idx+1), side_length
+        x3,y3 = side_length * (start_idx+2), 0
         side1 = np.hstack([
             np.linspace(x1, x2, n).reshape(-1,1), 
             np.linspace(y1, y2, n).reshape(-1,1),
@@ -1295,7 +1304,8 @@ def generate_zigzag(n1=200, num_fold = 3, template_size=256):
         side_list.append(side1)
         side_list.append(side2)
     template = np.vstack(side_list)
-    template = normalize([template], side=template_size)[0]
+    # template = normalize([template], side=template_size)[0]
+    template = center_stroke(template)
     template = interpcurve(n1, template[:,0], template[:,1])
     return template
 
