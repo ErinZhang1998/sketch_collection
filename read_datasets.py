@@ -24,8 +24,33 @@ from sklearn.metrics import mean_squared_error
 from scipy.spatial import ConvexHull
 from sklearn.linear_model import LinearRegression
 
+def check_close(M1,M2):
+    for a,b in zip(M1,M2):
+        if not np.isclose(a, b, rtol=1, atol=1e-05):
+            return False 
+    return True
+
+def decompose_affine(M):
+    a,b,c,d = M[:2,:2].reshape(-1,)
+    normalization_constant = (a ** 2 + c ** 2) ** 0.5
+    R = np.array([[a / normalization_constant, -c / normalization_constant],
+                  [c / normalization_constant, a / normalization_constant]])
+    theta = np.arctan2(R[1][0], R[0][0])
+    scale_mat = np.array([[normalization_constant, 0],
+                    [0, (a * d - b * c)/normalization_constant]])
+
+    shear_mat = np.array([[1, (a * b + c * d) / (np.square(a) + np.square(c))],
+                  [0, 1]])
+    return theta, scale_mat, shear_mat
+
+def get_affine(theta, scale_mat, shear_mat):
+    recovered_rot_matrix = np.array([[np.cos(theta), -np.sin(theta)], 
+                                     [np.sin(theta), np.cos(theta)]])
+    return recovered_rot_matrix @ scale_mat @ shear_mat
+
+
 def get_translation_matrix(tx,ty):
-    T = np.matrix([
+    T = np.asarray([
         [1,0,tx],
         [0,1,ty],
         [0 ,0 ,1 ]]
@@ -33,7 +58,7 @@ def get_translation_matrix(tx,ty):
     return T
 
 def get_rotation_matrix(theta):
-    T = np.matrix([
+    T = np.asarray([
         [np.cos(theta),-np.sin(theta),0],
         [np.sin(theta), np.cos(theta),0],
         [0 ,0 ,1 ]]
@@ -41,7 +66,7 @@ def get_rotation_matrix(theta):
     return T
 
 def get_shear_matrix(hx,hy):
-    T = np.matrix([
+    T = np.asarray([
         [1,hx,0],
         [hy,1,0],
         [0 ,0 ,1 ]]
@@ -49,7 +74,7 @@ def get_shear_matrix(hx,hy):
     return T
 
 def get_uniform_scale_matrix(s):
-    T = np.matrix([
+    T = np.asarray([
         [s,0,0],
         [0,s,0],
         [0 ,0 ,1 ]]
@@ -57,7 +82,7 @@ def get_uniform_scale_matrix(s):
     return T
 
 def get_scale_matrix(sx,sy):
-    T = np.matrix([
+    T = np.asarray([
         [sx,0,0],
         [0,sy,0],
         [0 ,0 ,1 ]]
@@ -65,7 +90,7 @@ def get_scale_matrix(sx,sy):
     return T
 
 def get_euclidean_matrix(tx,ty,theta):
-    T = np.matrix([
+    T = np.asarray([
         [np.cos(theta),-np.sin(theta),tx],
         [np.sin(theta), np.cos(theta),ty],
         [0 ,0 ,1 ]]
