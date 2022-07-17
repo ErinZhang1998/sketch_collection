@@ -1,3 +1,4 @@
+from cmath import isclose
 import sys    
 path_to_module = '/home/xiaoyuz1/sketch_collection'
 sys.path.append(path_to_module)
@@ -15,6 +16,7 @@ import matplotlib.image as mpimg
 import os
 import io
 import PIL
+from skimage.metrics import structural_similarity 
 
 import torch
 import torch.nn as nn
@@ -48,9 +50,9 @@ class Constants():
             5: "moustache",
             6: "face",
         }
-        self.face_json = json.load(open('/media/hdd/xiaoyuz1/PG/face.ndjson', 'r'))
+        self.face_json = json.load(open('/raid/xiaoyuz1/PG/face.ndjson', 'r'))
 
-        self.angel_json = json.load(open('/media/hdd/xiaoyuz1/PG/angel.ndjson', 'r'))
+        self.angel_json = json.load(open('/raid/xiaoyuz1/PG/angel.ndjson', 'r'))
 
         self.angel_parts_idx = [0,1,2,3,4,5,7]
         self.angel_parts_idx_dict = {
@@ -70,13 +72,6 @@ class HParams():
         self.weight_decay = 0.0
         self.batch_size = 64
         self.lr = 0.001
-        
-        self.save_every = 1000
-        self.print_every = 500
-        self.num_visualize = 9
-        self.num_sampled_points = 200
-        self.use_projective = False
-        self.canvas_size = 256
 
 class CommandParams():
     def __init__(self):
@@ -86,30 +81,29 @@ class CommandParams():
         self.num_workers = 0
         self.wandb_project_name = "doodler-draw"
         self.wandb_project_entity = "erinz"
-        self.save_root_folder = "/media/hdd/xiaoyuz1/doodler_model_checkpoint"
-        self.train_file = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_train.pkl"
-        self.dev_file = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_val.pkl"
-        self.test_file = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_test.pkl"
-        self.train_seq_file = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_train_sequences.pkl"
-        self.dev_seq_file = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_val_sequences.pkl"
-        self.test_seq_file = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_test_sequences.pkl"
+        self.save_root_folder = "/raid/xiaoyuz1/doodler_model_checkpoint"
+        self.train_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train.pkl"
+        self.dev_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_val.pkl"
+        self.test_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_test.pkl"
+        self.train_seq_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train_sequences.pkl"
+        self.dev_seq_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_val_sequences.pkl"
+        self.test_seq_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_test_sequences.pkl"
 
 def get_args():
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-enable_wandb", action='store_true')
     parser.add_argument("-start_epoch", type=int, default=0)
-    parser.add_argument("-num_epochs", type=int, default=50)
+    parser.add_argument("-num_epochs", type=int, default=200)
     parser.add_argument("-num_workers", type=int, default=0)
     parser.add_argument("-wandb_project_name", type=str, default="doodler-draw")
     parser.add_argument("-wandb_project_entity", type=str, default="erinz")
-    parser.add_argument("-save_root_folder", type=str, default="/media/hdd/xiaoyuz1/doodler_model_checkpoint")
-    parser.add_argument("-train_file", type=str, default = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_train.pkl")
-    parser.add_argument("-dev_file", type=str, default = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_dev.pkl")
-    parser.add_argument("-test_file", type=str, default = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_test.pkl")
-    parser.add_argument("-train_seq_file", type=str, default = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_train_sequences.pkl")
-    parser.add_argument("-dev_seq_file", type=str, default = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_dev_sequences.pkl")
-    parser.add_argument("-test_seq_file", type=str, default = "/media/hdd/xiaoyuz1/primitive_selector_training_data/july_15_test_sequences.pkl")
+    parser.add_argument("-save_root_folder", type=str, default="/raid/xiaoyuz1/doodler_model_checkpoint")
+    parser.add_argument("-train_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train.pkl")
+    parser.add_argument("-dev_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_dev.pkl")
+    parser.add_argument("-test_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_test.pkl")
+    parser.add_argument("-train_seq_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train_sequences.pkl")
+    parser.add_argument("-dev_seq_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_dev_sequences.pkl")
+    parser.add_argument("-test_seq_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_test_sequences.pkl")
     
     parser.add_argument("-word_embed_dim", type=int, default=64)
     parser.add_argument("-lstm_output_dim", type=int, default=512)
@@ -121,7 +115,7 @@ def get_args():
     parser.add_argument("-M", type=int, default=2)
     parser.add_argument("-weight_decay", type=float, default=0.0)
     parser.add_argument("-batch_size", type=int, default=64)
-    parser.add_argument("-lr", type=float, default=0.001)
+    parser.add_argument("-lr", type=float, default=0.0001)
 
     parser.add_argument("-save_every", type=int, default=1000)
     parser.add_argument("-print_every", type=int, default=500)
@@ -133,6 +127,12 @@ def get_args():
     args = parser.parse_args()
     
     return args
+
+def rendered_image_to_01(img):
+    img[img < 1] = 1
+    img[img == 255] = 0
+    return img
+
 
 def get_affine_transformation(info):
     T_rotate = rd.get_rotation_matrix(info["theta"])
@@ -238,6 +238,7 @@ class PrimitiveDataset(Dataset):
 
         self.vocab = vocab
         self.vocab_keys = vocab.keys()
+        self.vocab_reverse = dict(zip(vocab.values(), vocab.keys()))
         self.num_transformation_params = num_transformation_params
 
     def __len__(self):
@@ -311,6 +312,38 @@ class PrimitiveSelector(nn.Module):
 
         return prim_pred, normal_dists, pi_dists
 
+class Meter(object):
+    def __init__(self):
+        self.count = 0
+        self.correct_count = 0
+        self.metric_dict = defaultdict(list)
+    
+    def reset(self):
+        self.count = 0
+        self.correct_count = 0
+        self.metric_dict = defaultdict(list)
+    
+    def log_metric(self, pred_type, gt_type, gt_img, pred_img):
+        if pred_type == gt_type:
+            self.correct_count += 1 
+        mse = np.mean((gt_img.astype(np.float32) - pred_img.astype(np.float32)) ** 2)
+        psnr = 100 if np.isclose(mse, 0.0, rtol=1.0, atol=1e-5) else 20 * np.log10(255 / (np.sqrt(mse)))
+        ssim = structural_similarity(gt_img, pred_img, multichannel=False, data_range=255)
+        self.metric_dict["mse"].append(mse)
+        self.metric_dict["psnr"].append(psnr)
+        self.metric_dict["ssim"].append(ssim)
+        self.count += 1
+    
+    def finalize_metric(self):
+        return {
+            "acc" : self.correct_count / self.count,
+            "mse" : self.metric_dict["mse"] / self.count,
+            "psnr" : self.metric_dict["psnr"] / self.count,
+            "ssim" : self.metric_dict["ssim"] / self.count,
+        }
+        
+        
+
 class Trainer():
     def __init__(self, hp, args, vocab, templates):
         
@@ -354,10 +387,12 @@ class Trainer():
         self.model = PrimitiveSelector(hp).cuda()
         self.optimizer = optim.Adam(self.model.parameters(), lr=hp.lr, weight_decay=hp.weight_decay)
         self.ce_loss = nn.CrossEntropyLoss()
-
+        
+        self.test_meter = Meter()
+        
         self.num_pngs_per_row = 3
-        num_rows = hp.num_visualize // self.num_pngs_per_row
-        if num_rows * self.num_pngs_per_row < hp.num_visualize:
+        num_rows = args.num_visualize // self.num_pngs_per_row
+        if num_rows * self.num_pngs_per_row < args.num_visualize:
             num_rows += 1
         self.num_rows = num_rows
     
@@ -410,13 +445,13 @@ class Trainer():
                 if self.enable_wandb:
                     wandb.log(wandb_dict, step=step)
                 else:
-                    if step % self.hp.print_every == 0:
+                    if step % self.args.print_every == 0:
                         print_s = [f"Epoch {epoch} Iter {step}: "]
                         for k,v in wandb_dict.items():
                             print_s.append(f"{k} : {v}")
                         print("\n\t".join(print_s))
                 
-                if step % self.hp.save_every == 0:
+                if step % self.args.save_every == 0:
                     self.evaluate(step)
                     self.save_model(step)
                     self.model.train()
@@ -436,39 +471,117 @@ class Trainer():
             samples.append(sample)
         return samples
 
+    def metric(self, descriptions, dataset_indices, prim_types, param_samples, plot_indices):
+        """_summary_
+
+        Parameters
+        ----------
+        dataset_indices : _type_
+            _description_
+        prim_types : torch.Tensor (N,)
+            _description_
+        param_samples : list of torch.Tensor
+            list of tensors of shape (N, output_dim) 
+
+        Returns
+        -------
+        """
+        plot_i = 0
+        fig = plt.figure(figsize=(self.num_pngs_per_row * 5, self.num_rows * 5)) 
+        fig.patch.set_alpha(1)  
+        for idx, data_idx in enumerate(dataset_indices):
+            prim_type = prim_types[idx].item()
+            info = self.test_dataset.data_raw[data_idx]
+           
+            pred_template_name, pred_template = self.templates[int(prim_type)]
+            data,_, result = self.test_sequences[data_idx]
+            pred_info = {}
+            pred_params = [sample[idx].item() for sample in param_samples]
+            pred_info["theta"],pred_info["sx"],pred_info["sy"],pred_info["hx"],pred_info["tx"],pred_info["ty"] = pred_params
+            pred_M = get_affine_transformation(pred_info)
+            if self.args.use_projective:
+                pred_template_pred_param = cv2.perspectiveTransform(pred_template, pred_M).reshape(-1,2)
+            else:
+                pred_template_pred_param = cv2.transform(np.array([pred_template]).astype(np.float32), pred_M)[0][:,:-1]
+
+            gt_img = np.asarray(rd.render_img([result], line_diameter=3))
+            pred_img = np.asarray(rd.render_img([pred_template_pred_param], line_diameter=3))
+            self.test_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
+            
+            if idx in plot_indices:
+                gt_template_name,_ = self.templates[int(info["primitive_type"])]
+                ax = plt.subplot(self.num_rows, self.num_pngs_per_row, plot_i+1)
+                
+                if self.args.use_projective:
+                    correct_template_pred_param = cv2.perspectiveTransform(template, pred_M).reshape(-1,2)
+                else:
+                    correct_template_pred_param = cv2.transform(np.array([template]).astype(np.float32), pred_M)[0][:,:-1]
+                if self.args.use_projective:
+                    pred_template_pred_param = cv2.perspectiveTransform(pred_template, pred_M).reshape(-1,2)
+                else:
+                    pred_template_pred_param = cv2.transform(np.array([pred_template]).astype(np.float32), pred_M)[0][:,:-1]
+
+                ax.scatter(data[:,0], data[:,1], s=1, c='b')
+                ax.scatter(result[:,0], result[:,1], s=1, alpha=0.5, c='r')
+                ax.scatter(correct_template_pred_param[:,0], correct_template_pred_param[:,1], s=1, c='darkred', alpha=0.5)
+                ax.scatter(pred_template_pred_param[:,0], pred_template_pred_param[:,1], s=1, c='lime')
+                plt.xlim(-self.args.canvas_size,self.args.canvas_size)
+                plt.ylim(self.args.canvas_size,-self.args.canvas_size)
+                gt_params = [info["theta"],info["sx"],info["sy"],info["hx"],info["tx"],info["ty"]]
+                title = f"{gt_template_name},{pred_template_name}\n" 
+                desc = info["processed"]
+                desc2 = " ".join([self.test_dataset.vocab_reverse[j.item()] for j in descriptions[idx]])
+                title += f"{desc},{desc2}\n"
+                
+                for pi,(p1,p2) in enumerate(zip(gt_params, pred_params)):
+                    if pi == 0:
+                        p1_deg = np.degrees(p1)
+                        p2_deg = np.degrees(p2)
+                        title += f"{p1_deg:.3f} {p2_deg:.3f}"
+                    else:
+                        title += f"{p1:.3f} {p2:.3f}"
+                    if pi % 2 == 0:
+                        title += "\n"
+                    else:
+                        title += " | "
+                ax.set_title(title, y=0.75)
+        
     def evaluate(self, step):
         self.model.eval()
+        self.test_meter.reset()
         with torch.no_grad(): 
             for batch_idx, (description_ts, primitive_types, affine_paramss, indices) in enumerate(self.test_dataset_loader): 
-                description_ts = rnn.pack_sequence(description_ts)
-                description_ts, primitive_types, affine_paramss = description_ts.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
+                description_ts_packed = rnn.pack_sequence(description_ts)
+                description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
                 
-                prim_pred, normal_dists, pi_dists = self.model(description_ts)  
+                prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)  
                 prim_types = torch.argmax(prim_pred, dim=1)
                 samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1
                 np.random.seed(123)
-                plot_indices = np.random.choice(len(indices), self.hp.num_visualize, replace=False)
+                plot_indices = np.random.choice(len(indices), self.args.num_visualize, replace=False)
+                dataset_indices = [indices[j].item() for j in plot_indices]
+                
                 fig = plt.figure(figsize=(self.num_pngs_per_row * 5, self.num_rows * 5)) 
                 fig.patch.set_alpha(1)  
-                image_name = f"{step}-"+",".join([str(x) for x in plot_indices])
-                for i,idx in enumerate(plot_indices):
+                image_name = f"{step}-"+",".join([str(x) for x in dataset_indices])
+                for i,(idx, data_idx) in enumerate(zip(plot_indices, dataset_indices)):
                     ax = plt.subplot(self.num_rows, self.num_pngs_per_row, i+1)
                     prim_type = prim_types[idx].item()
-                    info = self.test_dataset.data_raw[idx]
-                    data, template, result = self.test_sequences[idx]
+                    info = self.test_dataset.data_raw[data_idx]
+                    data, template, result = self.test_sequences[data_idx]
                     # transform_mat = np.asarray(info['M']).astype(float).reshape(3,3)
-
                     pred_info = {}
                     pred_params = [sample[idx].item() for sample in samples]
                     pred_info["theta"],pred_info["sx"],pred_info["sy"],pred_info["hx"],pred_info["tx"],pred_info["ty"] = pred_params
                     pred_M = get_affine_transformation(pred_info)
-                    if self.hp.use_projective:
+                    pred_template_name, pred_template = self.templates[int(prim_type)]
+                    gt_template_name,_ = self.templates[int(info["primitive_type"])]
+                    
+                    if self.args.use_projective:
                         correct_template_pred_param = cv2.perspectiveTransform(template, pred_M).reshape(-1,2)
                     else:
                         correct_template_pred_param = cv2.transform(np.array([template]).astype(np.float32), pred_M)[0][:,:-1]
-                    pred_template_name, pred_template = self.templates[int(prim_type)]
-                    gt_template_name,_ = self.templates[int(info["primitive_type"])]
-                    if self.hp.use_projective:
+                    if self.args.use_projective:
                         pred_template_pred_param = cv2.perspectiveTransform(pred_template, pred_M).reshape(-1,2)
                     else:
                         pred_template_pred_param = cv2.transform(np.array([pred_template]).astype(np.float32), pred_M)[0][:,:-1]
@@ -477,10 +590,13 @@ class Trainer():
                     ax.scatter(result[:,0], result[:,1], s=1, alpha=0.5, c='r')
                     ax.scatter(correct_template_pred_param[:,0], correct_template_pred_param[:,1], s=1, c='darkred', alpha=0.5)
                     ax.scatter(pred_template_pred_param[:,0], pred_template_pred_param[:,1], s=1, c='lime')
-                    plt.xlim(-self.hp.canvas_size,self.hp.canvas_size)
-                    plt.ylim(self.hp.canvas_size,-self.hp.canvas_size)
+                    plt.xlim(-self.args.canvas_size,self.args.canvas_size)
+                    plt.ylim(self.args.canvas_size,-self.args.canvas_size)
                     gt_params = [x.item() for x in affine_paramss[idx]]
                     title = f"{gt_template_name},{pred_template_name}\n" 
+                    desc = info["processed"]
+                    desc2 = " ".join([self.test_dataset.vocab_reverse[j.item()] for j in description_ts[idx]])
+                    title += f"{desc},{desc2}\n"
                     
                     for pi,(p1,p2) in enumerate(zip(gt_params, pred_params)):
                         if pi == 0:
@@ -491,8 +607,11 @@ class Trainer():
                             title += f"{p1:.3f} {p2:.3f}"
                         if pi % 2 == 0:
                             title += "\n"
+                        else:
+                            title += " | "
                     # plt.title(title)
-                    title_obj = ax.set_title(title)
+                    ax.set_title(title, y=0.75)
+                    # title_obj.set_y(-0.5)
                 # plt.title(image_name)
                 fig.suptitle(image_name)
                 if self.enable_wandb:
@@ -510,6 +629,10 @@ class Trainer():
             'iteration' : step,
             'model_state_dict': self.model.state_dict(),
         }, torch_path_name)
+    
+    def load_model(self, model_path):
+        ckpt = torch.load(model_path)
+        self.model.load_state_dict(ckpt['model_state_dict'])
 
 def main():
     wandb.login()
@@ -540,7 +663,7 @@ def main():
     }
     templates = {}
     for i,(k,v) in enumerate(TEMPLATE_DICT.items()):
-        arr = v(hp.num_sampled_points)
+        arr = v(args.num_sampled_points)
         templates[i] = (k,arr)
     
     trainer = Trainer(hp, args, vocab, templates)
