@@ -1,1 +1,0 @@
-{"loss": 0.478271484375, "_timestamp": 1649817938, "_runtime": 3077, "train_acc": 0.9943117178612059, "dev_face_acc": 0.6912350597609562, "dev_angel_acc": 0.5423452768729642, "_step": 3900, "_wandb": {"runtime": 3065}}

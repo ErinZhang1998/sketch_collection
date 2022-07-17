@@ -1,9 +1,0 @@
-
-Number of train batches:  55
-Number of test batches:  16
-Number of test batches:  20
-Number of dev batches:  8
-Number of dev batches:  10
-/raid/xiaoyuz1/clip_model_checkpoint/face/lemon-universe-8.pt /raid/xiaoyuz1/clip_model_checkpoint/face/lemon-universe-8.pickle
-/raid/xiaoyuz1/clip_model_checkpoint/face/lemon-universe-8.pt /raid/xiaoyuz1/clip_model_checkpoint/face/lemon-universe-8.pickle
-[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
