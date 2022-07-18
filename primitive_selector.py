@@ -66,6 +66,7 @@ class HParams():
         self.lstm_layers = 2 
         self.lstm_drop_prob = 0.4
         self.num_primitives = 5
+        self.parameter_names = {0:"theta", 1:"sx", 2:"sy", 3:"hx", 4:"tx", 5:"ty"}
         self.num_transformation_params = 6
         self.vocab_size = None
         self.M = 3
@@ -110,6 +111,7 @@ def get_args():
     parser.add_argument("-lstm_layers", type=int, default=2)
     parser.add_argument("-lstm_drop_prob", type=float, default=0.2)
     parser.add_argument("-num_primitives", type=int, default=5)
+    parser.add_argument("-parameter_names", nargs='+', default=["theta","sx","sy","hx","tx","ty"])
     parser.add_argument("-num_transformation_params", type=int, default=6)
     parser.add_argument("-vocab_size", type=int)
     parser.add_argument("-M", type=int, default=2)
@@ -313,7 +315,8 @@ class PrimitiveSelector(nn.Module):
         return prim_pred, normal_dists, pi_dists
 
 class Meter(object):
-    def __init__(self):
+    def __init__(self, meter_name):
+        self.meter_name = meter_name
         self.count = 0
         self.correct_count = 0
         self.metric_dict = defaultdict(list)
@@ -335,14 +338,17 @@ class Meter(object):
         self.count += 1
     
     def finalize_metric(self):
-        return {
-            "acc" : self.correct_count / self.count,
-            "mse" : self.metric_dict["mse"] / self.count,
-            "psnr" : self.metric_dict["psnr"] / self.count,
-            "ssim" : self.metric_dict["ssim"] / self.count,
+        metric_print_dict = {
+            f"{self.meter_name}_acc" : self.correct_count / self.count
         }
+        for k,v in self.metric_dict.items():
+            metric_print_dict[f"{self.meter_name}_{k}"] = np.sum(v) / self.count 
+        return metric_print_dict
         
-        
+def print_dict(pd, print_s = []):
+    for k,v in pd.items():
+        print_s.append(f"{k} : {v}")
+    print("\n\t".join(print_s))       
 
 class Trainer():
     def __init__(self, hp, args, vocab, templates):
@@ -388,7 +394,8 @@ class Trainer():
         self.optimizer = optim.Adam(self.model.parameters(), lr=hp.lr, weight_decay=hp.weight_decay)
         self.ce_loss = nn.CrossEntropyLoss()
         
-        self.test_meter = Meter()
+        self.test_meter = Meter("test")
+        self.train_meter = Meter("train")
         
         self.num_pngs_per_row = 3
         num_rows = args.num_visualize // self.num_pngs_per_row
@@ -414,18 +421,19 @@ class Trainer():
         step = 0
         for epoch in range(self.args.start_epoch, self.args.start_epoch + self.args.num_epochs):
         
-            for batch_idx, (description_ts, primitive_types, affine_paramss, _) in enumerate(self.train_dataset_loader):
-                description_ts = rnn.pack_sequence(description_ts)
+            for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.train_dataset_loader):
+                description_ts_packed = rnn.pack_sequence(description_ts)
                 
-                description_ts, primitive_types, affine_paramss = description_ts.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
+                description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
                 # params_gt_list = self.make_target(affine_paramss)
                 params_gt_list = [
                     affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])
                 ]
 
-                # prim_pred, pi_list, mu_list, sigma_list = self.model(description_ts)
-                prim_pred, normal_dists, pi_dists = self.model(description_ts)
-                
+                # prim_pred, pi_list, mu_list, sigma_list = self.model(description_ts_packed)
+                prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)
+                prim_types = torch.argmax(prim_pred, dim=1)
+                param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1                
                 self.optimizer.zero_grad()
                 
                 cel = self.ce_loss(prim_pred, primitive_types)
@@ -436,32 +444,33 @@ class Trainer():
                 
                 wandb_dict = {'prim_type_loss' : cel.item(), 'total_param_loss' : total_ll.item()}
                 for idx, ll in enumerate(lls):
-                    wandb_dict[f'param_{idx}_loss'] = ll.item()
+                    wandb_dict[f'{self.hp.parameter_names[idx]}_loss'] = ll.item()
                 wandb_dict['total_loss'] = total_lls.item()
                 
                 total_lls.backward()
                 self.optimizer.step()
+                # _ = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices=None, train=True)
                 
                 if self.enable_wandb:
                     wandb.log(wandb_dict, step=step)
-                else:
-                    if step % self.args.print_every == 0:
-                        print_s = [f"Epoch {epoch} Iter {step}: "]
-                        for k,v in wandb_dict.items():
-                            print_s.append(f"{k} : {v}")
-                        print("\n\t".join(print_s))
+                
+                if step % self.args.print_every == 0:
+                    print_s = [f"Epoch {epoch} Iter {step}: "]
+                    print_dict(wandb_dict, print_s)
                 
                 if step % self.args.save_every == 0:
                     self.evaluate(step)
                     self.save_model(step)
-                    self.model.train()
                     
-                
+                    # log_dict = self.train_meter.finalize_metric()
+                    # if self.enable_wandb:
+                    #     wandb.log(log_dict, step=step)
+                    # print_s = [f"Train @ Iter {step}: "]
+                    # print_dict(log_dict, print_s)
+                    # self.train_meter.reset()
+                    
+                    self.model.train()
                 step += 1
-            #     if epoch == 1:
-            #         break
-            # if epoch == 1:
-            #     break
             
     
     def sample_parameters(self, normal_dists, pi_dists):
@@ -471,7 +480,7 @@ class Trainer():
             samples.append(sample)
         return samples
 
-    def metric(self, descriptions, dataset_indices, prim_types, param_samples, plot_indices):
+    def calculate_metric(self, descriptions, dataset_indices, prim_types, param_samples, plot_indices=None, train=False):
         """_summary_
 
         Parameters
@@ -487,14 +496,23 @@ class Trainer():
         -------
         """
         plot_i = 0
-        fig = plt.figure(figsize=(self.num_pngs_per_row * 5, self.num_rows * 5)) 
-        fig.patch.set_alpha(1)  
+        dataset_indices_plot = []
+        if not train:
+            fig = plt.figure(figsize=(self.num_pngs_per_row * 5, self.num_rows * 5)) 
+            fig.patch.set_alpha(1)  
         for idx, data_idx in enumerate(dataset_indices):
+            data_idx = data_idx.item()
             prim_type = prim_types[idx].item()
-            info = self.test_dataset.data_raw[data_idx]
+            if train:
+                info = self.train_dataset.data_raw[data_idx]
+            else:
+                info = self.test_dataset.data_raw[data_idx]
            
             pred_template_name, pred_template = self.templates[int(prim_type)]
-            data,_, result = self.test_sequences[data_idx]
+            if train:
+                data, template, result = self.train_sequences[data_idx]
+            else:
+                data, template, result = self.test_sequences[data_idx]
             pred_info = {}
             pred_params = [sample[idx].item() for sample in param_samples]
             pred_info["theta"],pred_info["sx"],pred_info["sy"],pred_info["hx"],pred_info["tx"],pred_info["ty"] = pred_params
@@ -506,9 +524,13 @@ class Trainer():
 
             gt_img = np.asarray(rd.render_img([result], line_diameter=3))
             pred_img = np.asarray(rd.render_img([pred_template_pred_param], line_diameter=3))
-            self.test_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
+            if train:
+                self.train_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
+            else:
+                self.test_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
             
-            if idx in plot_indices:
+            if not train and idx in plot_indices:
+                dataset_indices_plot.append(data_idx)
                 gt_template_name,_ = self.templates[int(info["primitive_type"])]
                 ax = plt.subplot(self.num_rows, self.num_pngs_per_row, plot_i+1)
                 
@@ -535,84 +557,46 @@ class Trainer():
                 
                 for pi,(p1,p2) in enumerate(zip(gt_params, pred_params)):
                     if pi == 0:
-                        p1_deg = np.degrees(p1)
-                        p2_deg = np.degrees(p2)
-                        title += f"{p1_deg:.3f} {p2_deg:.3f}"
-                    else:
-                        title += f"{p1:.3f} {p2:.3f}"
+                        p1 = np.degrees(p1)
+                        p2 = np.degrees(p2)
+                    title += f"{self.hp.parameter_names[pi]}: {p1:.3f} {p2:.3f}"
                     if pi % 2 == 0:
                         title += "\n"
                     else:
                         title += " | "
-                ax.set_title(title, y=0.75)
+                ax.set_title(title, y=0.7)
+                plot_i += 1
+        if not train:
+            return fig, dataset_indices_plot
         
     def evaluate(self, step):
         self.model.eval()
         self.test_meter.reset()
         with torch.no_grad(): 
-            for batch_idx, (description_ts, primitive_types, affine_paramss, indices) in enumerate(self.test_dataset_loader): 
+            for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.test_dataset_loader): 
                 description_ts_packed = rnn.pack_sequence(description_ts)
                 description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
-                
+                params_gt_list = [
+                    affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])
+                ]
                 prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)  
-                prim_types = torch.argmax(prim_pred, dim=1)
-                samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1
-                np.random.seed(123)
-                plot_indices = np.random.choice(len(indices), self.args.num_visualize, replace=False)
-                dataset_indices = [indices[j].item() for j in plot_indices]
+                cel = self.ce_loss(prim_pred, primitive_types)
+                lls = self.loss(params_gt_list, normal_dists, pi_dists)
+                total_ll = torch.stack(lls).sum()
+                total_lls = total_ll + cel
+                self.test_meter.metric_dict['prim_type_loss'].append(cel.item())
+                self.test_meter.metric_dict['total_param_loss'].append(total_ll.item())
+                for idx, ll in enumerate(lls):
+                    self.test_meter.metric_dict[f'{self.hp.parameter_names[idx]}_loss'].append(ll.item())
+                self.test_meter.metric_dict['total_loss'].append(total_lls.item())
                 
-                fig = plt.figure(figsize=(self.num_pngs_per_row * 5, self.num_rows * 5)) 
-                fig.patch.set_alpha(1)  
-                image_name = f"{step}-"+",".join([str(x) for x in dataset_indices])
-                for i,(idx, data_idx) in enumerate(zip(plot_indices, dataset_indices)):
-                    ax = plt.subplot(self.num_rows, self.num_pngs_per_row, i+1)
-                    prim_type = prim_types[idx].item()
-                    info = self.test_dataset.data_raw[data_idx]
-                    data, template, result = self.test_sequences[data_idx]
-                    # transform_mat = np.asarray(info['M']).astype(float).reshape(3,3)
-                    pred_info = {}
-                    pred_params = [sample[idx].item() for sample in samples]
-                    pred_info["theta"],pred_info["sx"],pred_info["sy"],pred_info["hx"],pred_info["tx"],pred_info["ty"] = pred_params
-                    pred_M = get_affine_transformation(pred_info)
-                    pred_template_name, pred_template = self.templates[int(prim_type)]
-                    gt_template_name,_ = self.templates[int(info["primitive_type"])]
-                    
-                    if self.args.use_projective:
-                        correct_template_pred_param = cv2.perspectiveTransform(template, pred_M).reshape(-1,2)
-                    else:
-                        correct_template_pred_param = cv2.transform(np.array([template]).astype(np.float32), pred_M)[0][:,:-1]
-                    if self.args.use_projective:
-                        pred_template_pred_param = cv2.perspectiveTransform(pred_template, pred_M).reshape(-1,2)
-                    else:
-                        pred_template_pred_param = cv2.transform(np.array([pred_template]).astype(np.float32), pred_M)[0][:,:-1]
-
-                    ax.scatter(data[:,0], data[:,1], s=1, c='b')
-                    ax.scatter(result[:,0], result[:,1], s=1, alpha=0.5, c='r')
-                    ax.scatter(correct_template_pred_param[:,0], correct_template_pred_param[:,1], s=1, c='darkred', alpha=0.5)
-                    ax.scatter(pred_template_pred_param[:,0], pred_template_pred_param[:,1], s=1, c='lime')
-                    plt.xlim(-self.args.canvas_size,self.args.canvas_size)
-                    plt.ylim(self.args.canvas_size,-self.args.canvas_size)
-                    gt_params = [x.item() for x in affine_paramss[idx]]
-                    title = f"{gt_template_name},{pred_template_name}\n" 
-                    desc = info["processed"]
-                    desc2 = " ".join([self.test_dataset.vocab_reverse[j.item()] for j in description_ts[idx]])
-                    title += f"{desc},{desc2}\n"
-                    
-                    for pi,(p1,p2) in enumerate(zip(gt_params, pred_params)):
-                        if pi == 0:
-                            p1_deg = np.degrees(p1)
-                            p2_deg = np.degrees(p2)
-                            title += f"{p1_deg:.3f} {p2_deg:.3f}"
-                        else:
-                            title += f"{p1:.3f} {p2:.3f}"
-                        if pi % 2 == 0:
-                            title += "\n"
-                        else:
-                            title += " | "
-                    # plt.title(title)
-                    ax.set_title(title, y=0.75)
-                    # title_obj.set_y(-0.5)
-                # plt.title(image_name)
+                prim_types = torch.argmax(prim_pred, dim=1)
+                param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1
+                np.random.seed(123)
+                plot_indices = np.random.choice(len(dataset_indices), self.args.num_visualize, replace=False)
+                
+                fig, dataset_indices_plot = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices)  
+                image_name = f"{step}-"+",".join([str(x) for x in dataset_indices_plot])
                 fig.suptitle(image_name)
                 if self.enable_wandb:
                     final_img = plt_to_image(fig)
@@ -622,6 +606,11 @@ class Trainer():
                     plt.savefig(image_path)
                 fig.tight_layout()
                 plt.close()
+            log_dict = self.test_meter.finalize_metric()
+            if self.enable_wandb:
+                wandb.log(log_dict, step=step)
+            print_s = [f"Test @ Iter {step}: "]
+            print_dict(log_dict, print_s)
                 
     def save_model(self, step):
         torch_path_name = os.path.join(self.save_folder, f"{step}.pt")
@@ -641,6 +630,10 @@ def main():
     hp = HParams()
     args_dict = vars(args)
     for k,v in args_dict.items():
+        if k == "parameter_names":
+            for j,name in enumerate(v):
+                hp.parameter_names[j] = name
+            continue
         if hasattr(hp, k):
             setattr(hp, k,v)
 
