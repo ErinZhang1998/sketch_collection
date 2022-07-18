@@ -28,6 +28,7 @@ import torch.nn.functional as F
 from torch.distributions import Normal, OneHotCategorical
 import json
 
+
 class Constants():
     def __init__(self):
 
@@ -55,9 +56,106 @@ class Constants():
         self.angel_json = json.load(open('/raid/xiaoyuz1/PG/angel.ndjson', 'r'))
 
         self.angel_parts_idx = [0,1,2,3,4,5,7]
-        self.angel_parts_idx_dict = {
-            0:"halo",1 : "eyes",2:"nose",3:"mouth",4:"face",5:"body", 6: "limbs", 7:"wings",
+        self.angel_parts_idx_dict_doodler = {
+            0:"halo",1 : "angel eyes",2:"angel nose",3:"angel mouth",4:"angel face",5:"body", 6: "limbs", 7:"wings",
         }
+CONST = Constants()
+
+def create_split(arr_length):
+    """Create train,dev,test split for a given sequence
+    Parameters
+    ----------
+    arr_length : int 
+        Length of the data to create split for
+    Returns
+    -------
+    split_dict : dict
+        A dictionary mapping data index to split, {"train", "dev", "test"} 
+    """
+    import random
+    L = list(range(arr_length))
+    split_dict = dict(zip(L, ["unassigned"] * arr_length))
+    L.sort()  
+    random.seed(1028)
+    random.shuffle(L) 
+
+    split_1 = int(0.8 * arr_length)
+    split_2 = int(0.9 * arr_length)
+    train_L = L[:split_1]
+    split_dict.update(dict(zip(train_L, ["train"] * len(train_L))))
+    dev_L = L[split_1:split_2]
+    split_dict.update(dict(zip(dev_L, ["dev"] * len(dev_L))))
+    test_L = L[split_2:]
+    split_dict.update(dict(zip(test_L, ["test"] * len(test_L))))
+
+    return split_dict
+
+def prepare_data(df, templates, num_sampled_points = 200, use_projective = False):
+    """Prepare and face and angel data for PrimitiveSelector training.
+    Parameters
+    ----------
+    df : panda.DataFrame
+        _description_
+    templates : dict
+        Mapping from template index to (template name, template numpy array (num_sampled_points, 2))
+    num_sampled_points : int, optional
+        Number of points to sample in each part, by default 200
+    use_projective : bool, optional
+        Whether to predict parameters for affine or projective transformation, by default False
+    Returns
+    -------
+    all_data : list of dict
+        List containing all the data to train PrimitiveSelector model.
+    """
+    import cv2
+    from sklearn.metrics import mean_squared_error
+    from tqdm import tqdm
+
+    split_dict = create_split(len(df))
+    all_data = []
+    face_sketches = CONST.face_json['train_data']
+    angel_sketches = CONST.angel_json['train_data']
+    face_points = rd.process_all_to_part_convex_hull(face_sketches, list(CONST.face_parts_idx_dict_doodler.keys()), num_sampled_points)
+    angel_points = rd.process_all_to_part_convex_hull(angel_sketches, list(CONST.angel_parts_idx_dict_doodler.keys()), num_sampled_points)
+    
+    for i in tqdm(range(len(df))):
+        entry = df.iloc[i]
+        if entry['category'] == 'face':
+            # raw_desc = "{} {}".format(entry['text_1'], CONST.face_parts_idx_dict_doodler[entry['part']])
+            # desc = "{} {}".format(entry['no_punc_str_1'], CONST.face_parts_idx_dict_doodler[entry['part']])
+            sketch_data = face_points[entry['image_1']]
+        else:
+            # raw_desc = "{} {}".format(entry['text_1'], CONST.angel_parts_idx_dict_doodler[entry['part']])
+            # desc = "{} {}".format(entry['no_punc_str_1'], CONST.angel_parts_idx_dict_doodler[entry['part']])
+            sketch_data = angel_points[entry['image_1']]
+        
+        min_template_squared_error = np.inf
+        min_M = None
+        min_template_idx = None
+        for template_idx, (_, template) in templates.items():
+            data = sketch_data[entry['part']]
+            M = rd.get_transform(template, data, projective=use_projective)
+            if use_projective:
+                result = cv2.perspectiveTransform(template, M).reshape(-1,2)
+            else:
+                result = cv2.transform(np.array([template], copy=True).astype(np.float32), M)[0][:,:-1]
+            squared_error = np.sum(mean_squared_error(result, data, multioutput='raw_values'))
+            if squared_error < min_template_squared_error:
+                min_template_idx = template_idx
+                min_template_squared_error = squared_error
+                min_M = M.reshape(-1,)
+        all_data.append( {
+            'category' : entry['category'],
+            'image_idx' : entry['image_1'],
+            'part' : entry['part'],
+            'raw' : raw_desc,
+            'processed' : desc,
+            'primitive_type' : int(min_template_idx),
+            'M' : min_M,
+            'error' : min_template_squared_error,
+            'split' : split_dict[i],
+        })
+    return all_data
 
 class HParams():
     def __init__(self):
@@ -67,7 +165,7 @@ class HParams():
         self.lstm_drop_prob = 0.4
         self.num_primitives = 5
         self.parameter_names = {0:"theta", 1:"sx", 2:"sy", 3:"hx", 4:"tx", 5:"ty"}
-        self.num_transformation_params = 6
+        self.get_affine_func_name = "get_affine_transformation"
         self.vocab_size = None
         self.M = 3
         self.weight_decay = 0.0
@@ -83,13 +181,22 @@ class CommandParams():
         self.wandb_project_name = "doodler-draw"
         self.wandb_project_entity = "erinz"
         self.save_root_folder = "/raid/xiaoyuz1/doodler_model_checkpoint"
-        self.train_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train.pkl"
-        self.dev_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_val.pkl"
-        self.test_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_test.pkl"
+        self.train_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_train.pkl"
+        self.dev_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_val.pkl"
+        self.test_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_test.pkl"
         self.train_seq_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train_sequences.pkl"
         self.dev_seq_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_val_sequences.pkl"
         self.test_seq_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_test_sequences.pkl"
-
+'''
+python primitive_selector.py \
+    -enable_wandb \
+    -num_epochs 400 \
+    -train_file /raid/xiaoyuz1/primitive_selector_training_data/july_18_train.pkl \
+    -dev_file /raid/xiaoyuz1/primitive_selector_training_data/july_18_test.pkl \
+    -test_file /raid/xiaoyuz1/primitive_selector_training_data/july_18_test.pkl \
+    -parameter_names p0 p1 p2 p3 p4 p5 \
+    -get_affine_func_name get_affine_transformation_2 
+'''
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-enable_wandb", action='store_true')
@@ -99,9 +206,9 @@ def get_args():
     parser.add_argument("-wandb_project_name", type=str, default="doodler-draw")
     parser.add_argument("-wandb_project_entity", type=str, default="erinz")
     parser.add_argument("-save_root_folder", type=str, default="/raid/xiaoyuz1/doodler_model_checkpoint")
-    parser.add_argument("-train_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train.pkl")
-    parser.add_argument("-dev_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_dev.pkl")
-    parser.add_argument("-test_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_test.pkl")
+    parser.add_argument("-train_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_train.pkl")
+    parser.add_argument("-dev_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_dev.pkl")
+    parser.add_argument("-test_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_test.pkl")
     parser.add_argument("-train_seq_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train_sequences.pkl")
     parser.add_argument("-dev_seq_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_dev_sequences.pkl")
     parser.add_argument("-test_seq_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_test_sequences.pkl")
@@ -112,7 +219,7 @@ def get_args():
     parser.add_argument("-lstm_drop_prob", type=float, default=0.2)
     parser.add_argument("-num_primitives", type=int, default=5)
     parser.add_argument("-parameter_names", nargs='+', default=["theta","sx","sy","hx","tx","ty"])
-    parser.add_argument("-num_transformation_params", type=int, default=6)
+    parser.add_argument("-get_affine_func_name", type=str, default="get_affine_transformation")
     parser.add_argument("-vocab_size", type=int)
     parser.add_argument("-M", type=int, default=2)
     parser.add_argument("-weight_decay", type=float, default=0.0)
@@ -135,7 +242,6 @@ def rendered_image_to_01(img):
     img[img == 255] = 0
     return img
 
-
 def get_affine_transformation(info):
     T_rotate = rd.get_rotation_matrix(info["theta"])
     T_scale = rd.get_scale_matrix(info["sx"], info["sy"])
@@ -143,6 +249,19 @@ def get_affine_transformation(info):
     T_translate = T_translate = rd.get_translation_matrix(info["tx"], info["ty"])
     T = T_translate @ T_rotate @ T_scale @ T_shear
     return T
+
+def get_affine_transformation_2(info):
+    T = np.asarray([
+        [info["p0"],info["p1"],info["p2"]],
+        [info["p3"],info["p4"],info["p5"]],
+        [0 ,0 ,1 ]]
+    )
+    return T
+
+GET_AFFINE_FUNCS = {
+    "get_affine_transformation" : lambda info : get_affine_transformation(info),
+    "get_affine_transformation_2" : lambda info : get_affine_transformation_2(info),
+}
 
 def preprocess_dataset_language(path):
     """Return map from word to word index.
@@ -165,6 +284,10 @@ def preprocess_dataset_language(path):
     for info in data_raw:
         description = info['processed']
         [q2i[x] for x in description.lower().strip().split(" ")]
+    for k,v in CONST.face_parts_idx_dict_doodler.items():
+        [q2i[x] for x in v.lower().strip().split(" ")]
+    for k,v in CONST.angel_parts_idx_dict_doodler.items():
+        [q2i[x] for x in v.lower().strip().split(" ")]
     return q2i
 
 def preprocess_sequence(path, templates, num_sampled_points, use_projective):
@@ -232,7 +355,7 @@ def collate_primitivedataset(seq_list):
     return description_ts, primitive_types, affine_paramss, indices
 
 class PrimitiveDataset(Dataset):
-    def __init__(self, path, vocab, num_transformation_params):
+    def __init__(self, path, vocab, parameter_names):
         super().__init__()
         self.path = path        
         self.data_raw = pickle.load(open(self.path, "rb"))
@@ -241,7 +364,7 @@ class PrimitiveDataset(Dataset):
         self.vocab = vocab
         self.vocab_keys = vocab.keys()
         self.vocab_reverse = dict(zip(vocab.values(), vocab.keys()))
-        self.num_transformation_params = num_transformation_params
+        self.parameter_names = parameter_names
 
     def __len__(self):
         return len(self.data_raw)
@@ -249,18 +372,18 @@ class PrimitiveDataset(Dataset):
     def __getitem__(self, index):
         # Process language input 
         info = self.data_raw[index]
-        description = info['processed']
+        if info['category'] == 'face':
+            description = "{} {}".format(info['processed'], CONST.face_parts_idx_dict_doodler[info['part']])
+        else:
+            description = "{} {}".format(info['processed'], CONST.angel_parts_idx_dict_doodler[info['part']])
+        
         description_t = [self.vocab[x.lower()] for x in description.split(" ") if x.lower() in self.vocab_keys]
         description_t = torch.from_numpy(np.array(description_t)).long()
-        
-        # Process M (num_transformation_params,) and type
-        primitive_type = torch.tensor(info['primitive_type']).long()
-        
-        affine_params = torch.FloatTensor(np.array([
-            info["theta"],info["sx"],info["sy"],info["hx"],info["tx"],info["ty"],
-        ]))
-        return description_t, primitive_type, affine_params, torch.tensor(index).long()
 
+        primitive_type = torch.tensor(info['primitive_type']).long()
+        param_list = [info[k] for _,k in self.parameter_names.items()]
+        affine_params = torch.FloatTensor(np.array(param_list))
+        return description_t, primitive_type, affine_params, torch.tensor(index).long()
 
 class PrimitiveSelector(nn.Module):
     def __init__(self, hp):
@@ -275,8 +398,8 @@ class PrimitiveSelector(nn.Module):
         )
 
         self.primitive_fc = nn.Linear(hp.lstm_output_dim, hp.num_primitives)
-        self.gmm_network = nn.Linear(hp.lstm_output_dim, hp.num_transformation_params * 2 * 1 * hp.M)
-        self.pi_network = nn.Linear(hp.lstm_output_dim, hp.num_transformation_params * hp.M)
+        self.gmm_network = nn.Linear(hp.lstm_output_dim, len(hp.parameter_names) * 2 * 1 * hp.M)
+        self.pi_network = nn.Linear(hp.lstm_output_dim, len(hp.parameter_names) * hp.M)
 
     def forward(self, question):
         seq_tensor, seq_lengths = rnn.pad_packed_sequence(question, batch_first=True)               
@@ -300,7 +423,7 @@ class PrimitiveSelector(nn.Module):
         pis_list = torch.split(pis, self.hp.M, dim=1) # each: N x M
         
         normal_dists, pi_dists = [],[]
-        for i in range(self.hp.num_transformation_params):
+        for i in range(len(self.hp.parameter_names)):
             param = params_list[i]
             pi = pis_list[i]
             mean, sd = torch.split(param, param.shape[1] // 2, dim=1) # each: N x M
@@ -313,6 +436,7 @@ class PrimitiveSelector(nn.Module):
             pi_dists.append(pi_dist)
 
         return prim_pred, normal_dists, pi_dists
+
 
 class Meter(object):
     def __init__(self, meter_name):
@@ -350,11 +474,13 @@ class Meter(object):
         for k,v in self.metric_dict.items():
             metric_print_dict[f"{self.meter_name}_{k}"] = v
         return metric_print_dict
+    
         
 def print_dict(pd, print_s = []):
     for k,v in pd.items():
         print_s.append(f"{k} : {v}")
     print("\n\t".join(print_s))       
+
 
 class Trainer():
     def __init__(self, hp, args, vocab, templates):
@@ -378,8 +504,9 @@ class Trainer():
         if not os.path.exists(self.save_folder):
             os.mkdir(self.save_folder)
         self.templates = templates
-        self.train_dataset = PrimitiveDataset(args.train_file, vocab, hp.num_transformation_params)
-        self.test_dataset = PrimitiveDataset(args.test_file, vocab, hp.num_transformation_params)
+        
+        self.train_dataset = PrimitiveDataset(args.train_file, vocab, hp.parameter_names)
+        self.test_dataset = PrimitiveDataset(args.test_file, vocab, hp.parameter_names)
         self.train_dataset_loader = DataLoader(
             self.train_dataset, 
             batch_size=hp.batch_size, 
@@ -460,8 +587,11 @@ class Trainer():
                 data, template, result, gt_img = self.test_sequences[data_idx]
             pred_info = {}
             pred_params = [sample[idx].item() for sample in param_samples]
-            pred_info["theta"],pred_info["sx"],pred_info["sy"],pred_info["hx"],pred_info["tx"],pred_info["ty"] = pred_params
-            pred_M = get_affine_transformation(pred_info)
+            gt_params = [info[self.hp.parameter_names[pi]] for pi in range(len(self.hp.parameter_names))]
+            for pi in range(len(self.hp.parameter_names)):
+                pred_info[self.hp.parameter_names[pi]] = pred_params[pi]
+            pred_M = GET_AFFINE_FUNCS[self.hp.get_affine_func_name](pred_info)
+            
             if self.args.use_projective:
                 pred_template_pred_param = cv2.perspectiveTransform(pred_template, pred_M).reshape(-1,2)
             else:
@@ -494,14 +624,14 @@ class Trainer():
                 ax.scatter(pred_template_pred_param[:,0], pred_template_pred_param[:,1], s=1, c='lime')
                 plt.xlim(-self.args.canvas_size,self.args.canvas_size)
                 plt.ylim(self.args.canvas_size,-self.args.canvas_size)
-                gt_params = [info["theta"],info["sx"],info["sy"],info["hx"],info["tx"],info["ty"]]
+                
                 title = f"{gt_template_name},{pred_template_name}\n" 
                 desc = info["processed"]
                 desc2 = " ".join([self.test_dataset.vocab_reverse[j.item()] for j in descriptions[idx]])
                 title += f"{desc},{desc2}\n"
                 
                 for pi,(p1,p2) in enumerate(zip(gt_params, pred_params)):
-                    if pi == 0:
+                    if self.hp.parameter_names[pi] == "theta":
                         p1 = np.degrees(p1)
                         p2 = np.degrees(p2)
                     title += f"{self.hp.parameter_names[pi]}: {p1:.3f} {p2:.3f}"
@@ -589,8 +719,15 @@ class Trainer():
         
         self.test_meter.reset()
         with torch.no_grad(): 
-            for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.test_dataset_loader): 
-                description_ts_packed = rnn.pack_sequence(description_ts)
+            for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.test_dataset_loader):
+                try: 
+                    description_ts_packed = rnn.pack_sequence(description_ts)
+                except:
+                    print(description_ts)
+                    for ii, descr in enumerate(description_ts):
+                        desc_str = " ".join([self.test_dataset.vocab_reverse[j.item()] for j in descr])
+                        print(batch_idx, dataset_indices[ii].item(), desc_str)
+                    raise 
                 description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
                 params_gt_list = [
                     affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])
@@ -645,9 +782,10 @@ class Trainer():
         ckpt = torch.load(model_path)
         self.model.load_state_dict(ckpt['model_state_dict'])
 
+
 def main():
     wandb.login()
-    CONST = Constants()
+    
     args = get_args()
     hp = HParams()
     args_dict = vars(args)
@@ -661,7 +799,6 @@ def main():
 
     vocab = preprocess_dataset_language(args.train_file)
     hp.vocab_size = len(vocab)
-
     # TEMPLATE_DICT = {
     #     'arc' : lambda n : rd.generate_arc(n1=n, radius=10, x0=0, y0=0, template_size=w),
     #     'circle' : lambda n : rd.generate_circle(n1=n, radius=100, x0=0, y0=0, template_size=w),
@@ -680,7 +817,6 @@ def main():
     for i,(k,v) in enumerate(TEMPLATE_DICT.items()):
         arr = v(args.num_sampled_points)
         templates[i] = (k,arr)
-    
     trainer = Trainer(hp, args, vocab, templates)
     trainer.train()
 
