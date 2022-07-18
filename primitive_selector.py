@@ -319,30 +319,36 @@ class Meter(object):
         self.meter_name = meter_name
         self.count = 0
         self.correct_count = 0
-        self.metric_dict = defaultdict(list)
+        self.metric_dict = defaultdict(float)
     
     def reset(self):
         self.count = 0
         self.correct_count = 0
-        self.metric_dict = defaultdict(list)
+        self.metric_dict = defaultdict(float)
+    
+    # def log_loss(self, ll_list):
+        
     
     def log_metric(self, pred_type, gt_type, gt_img, pred_img):
         if pred_type == gt_type:
             self.correct_count += 1 
+        self.count += 1
         mse = np.mean((gt_img.astype(np.float32) - pred_img.astype(np.float32)) ** 2)
         psnr = 100 if np.isclose(mse, 0.0, rtol=1.0, atol=1e-5) else 20 * np.log10(255 / (np.sqrt(mse)))
         ssim = structural_similarity(gt_img, pred_img, multichannel=False, data_range=255)
-        self.metric_dict["mse"].append(mse)
-        self.metric_dict["psnr"].append(psnr)
-        self.metric_dict["ssim"].append(ssim)
-        self.count += 1
+        new_mse = self.metric_dict["mse"] + (mse - self.metric_dict["mse"]) / self.count
+        self.metric_dict["mse"] = new_mse 
+        new_psnr = self.metric_dict["psnr"] + (psnr - self.metric_dict["psnr"]) / self.count
+        self.metric_dict["psnr"] = new_psnr 
+        new_ssim = self.metric_dict["ssim"] + (ssim - self.metric_dict["ssim"]) / self.count
+        self.metric_dict["ssim"] = new_ssim 
     
     def finalize_metric(self):
         metric_print_dict = {
             f"{self.meter_name}_acc" : self.correct_count / self.count
         }
         for k,v in self.metric_dict.items():
-            metric_print_dict[f"{self.meter_name}_{k}"] = np.sum(v) / self.count 
+            metric_print_dict[f"{self.meter_name}_{k}"] = v
         return metric_print_dict
         
 def print_dict(pd, print_s = []):
@@ -403,83 +409,22 @@ class Trainer():
             num_rows += 1
         self.num_rows = num_rows
     
-    def loss(self, y_list, normal_dists, pi_dists):
+    def loss(self, y_list, normal_dists, pi_dists, calculate_mean=True):
         losses = []
         for param_idx,(y,normal_dist,pi_dist) in enumerate(zip(y_list, normal_dists, pi_dists)):
             ys = y.unsqueeze(1).expand_as(normal_dist.loc)
             loglik = normal_dist.log_prob(ys)
             loglik = torch.sum(loglik, dim=2)
             loss = -torch.logsumexp(pi_dist.logits + loglik, dim=1)
-            loss_mean = loss.mean()
-            losses.append(loss_mean)
+            if calculate_mean:
+                loss_mean = loss.mean()
+                losses.append(loss_mean)
+            else:
+                losses.append(loss)
             # if loss_mean < 0:
             #     print(f"{param_idx}: ", torch.exp(loglik))
         return losses
-
-    def train(self):
-        self.model.train()
-        step = 0
-        for epoch in range(self.args.start_epoch, self.args.start_epoch + self.args.num_epochs):
-        
-            for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.train_dataset_loader):
-                description_ts_packed = rnn.pack_sequence(description_ts)
-                
-                description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
-                # params_gt_list = self.make_target(affine_paramss)
-                params_gt_list = [
-                    affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])
-                ]
-
-                # prim_pred, pi_list, mu_list, sigma_list = self.model(description_ts_packed)
-                prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)
-                prim_types = torch.argmax(prim_pred, dim=1)
-                param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1                
-                self.optimizer.zero_grad()
-                
-                cel = self.ce_loss(prim_pred, primitive_types)
-                # lls = self.log_losses(params_gt_list, pi_list, mu_list, sigma_list, epoch)
-                lls = self.loss(params_gt_list, normal_dists, pi_dists)
-                total_ll = torch.stack(lls).sum()
-                total_lls = total_ll + cel
-                
-                wandb_dict = {'prim_type_loss' : cel.item(), 'total_param_loss' : total_ll.item()}
-                for idx, ll in enumerate(lls):
-                    wandb_dict[f'{self.hp.parameter_names[idx]}_loss'] = ll.item()
-                wandb_dict['total_loss'] = total_lls.item()
-                
-                total_lls.backward()
-                self.optimizer.step()
-                # _ = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices=None, train=True)
-                
-                if self.enable_wandb:
-                    wandb.log(wandb_dict, step=step)
-                
-                if step % self.args.print_every == 0:
-                    print_s = [f"Epoch {epoch} Iter {step}: "]
-                    print_dict(wandb_dict, print_s)
-                
-                if step % self.args.save_every == 0:
-                    self.evaluate(step)
-                    self.save_model(step)
-                    
-                    # log_dict = self.train_meter.finalize_metric()
-                    # if self.enable_wandb:
-                    #     wandb.log(log_dict, step=step)
-                    # print_s = [f"Train @ Iter {step}: "]
-                    # print_dict(log_dict, print_s)
-                    # self.train_meter.reset()
-                    
-                    self.model.train()
-                step += 1
-            
     
-    def sample_parameters(self, normal_dists, pi_dists):
-        samples = []
-        for param_idx,(normal_dist, pi_dist) in enumerate(zip(normal_dists, pi_dists)):
-            sample = torch.sum(pi_dist.sample().unsqueeze(2) * normal_dist.sample(), dim=1)
-            samples.append(sample)
-        return samples
-
     def calculate_metric(self, descriptions, dataset_indices, prim_types, param_samples, plot_indices=None, train=False):
         """_summary_
 
@@ -510,9 +455,9 @@ class Trainer():
            
             pred_template_name, pred_template = self.templates[int(prim_type)]
             if train:
-                data, template, result = self.train_sequences[data_idx]
+                data, template, result, gt_img = self.train_sequences[data_idx]
             else:
-                data, template, result = self.test_sequences[data_idx]
+                data, template, result, gt_img = self.test_sequences[data_idx]
             pred_info = {}
             pred_params = [sample[idx].item() for sample in param_samples]
             pred_info["theta"],pred_info["sx"],pred_info["sy"],pred_info["hx"],pred_info["tx"],pred_info["ty"] = pred_params
@@ -522,7 +467,7 @@ class Trainer():
             else:
                 pred_template_pred_param = cv2.transform(np.array([pred_template]).astype(np.float32), pred_M)[0][:,:-1]
 
-            gt_img = np.asarray(rd.render_img([result], line_diameter=3))
+            # gt_img = np.asarray(rd.render_img([result], line_diameter=3))
             pred_img = np.asarray(rd.render_img([pred_template_pred_param], line_diameter=3))
             if train:
                 self.train_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
@@ -568,9 +513,80 @@ class Trainer():
                 plot_i += 1
         if not train:
             return fig, dataset_indices_plot
+       
+    def train(self):
+        self.model.train()
+        step = 0
+        for epoch in range(self.args.start_epoch, self.args.start_epoch + self.args.num_epochs):
         
+            for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.train_dataset_loader):
+                description_ts_packed = rnn.pack_sequence(description_ts)
+                
+                description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
+                # params_gt_list = self.make_target(affine_paramss)
+                params_gt_list = [
+                    affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])
+                ]
+
+                # prim_pred, pi_list, mu_list, sigma_list = self.model(description_ts_packed)
+                prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)
+                # prim_types = torch.argmax(prim_pred, dim=1)
+                # param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1                
+                self.optimizer.zero_grad()
+                
+                cel = self.ce_loss(prim_pred, primitive_types)
+                # lls = self.log_losses(params_gt_list, pi_list, mu_list, sigma_list, epoch)
+                lls = self.loss(params_gt_list, normal_dists, pi_dists)
+                total_ll = torch.stack(lls).sum()
+                total_lls = total_ll + cel
+                
+                wandb_dict = {'prim_type_loss' : cel.item(), 'total_param_loss' : total_ll.item()}
+                for idx, ll in enumerate(lls):
+                    wandb_dict[f'{self.hp.parameter_names[idx]}_loss'] = ll.item()
+                wandb_dict['total_loss'] = total_lls.item()
+                
+                total_lls.backward()
+                self.optimizer.step()
+                
+                if self.enable_wandb:
+                    wandb.log(wandb_dict, step=step)
+                
+                if step % self.args.print_every == 0:
+                    print_s = [f"Epoch {epoch} Iter {step}: "]
+                    print_dict(wandb_dict, print_s)
+                
+                if step % self.args.save_every == 1:
+                    self.model.eval()
+                    with torch.no_grad(): 
+                        for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.train_dataset_loader):
+                            description_ts_packed = rnn.pack_sequence(description_ts)
+                            
+                            description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
+                            prim_types = torch.argmax(prim_pred, dim=1)
+                            param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1   
+                            _ = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices=None, train=True)
+                    log_dict = self.train_meter.finalize_metric()
+                    if self.enable_wandb:
+                        wandb.log(log_dict, step=step)
+                    print_s = [f"Train @ Iter {step}: "]
+                    print_dict(log_dict, print_s)
+                    self.train_meter.reset()
+                    
+                    self.evaluate(step)
+                    self.save_model(step)
+                    
+                    self.model.train()
+                step += 1
+    
+    def sample_parameters(self, normal_dists, pi_dists):
+        samples = []
+        for param_idx,(normal_dist, pi_dist) in enumerate(zip(normal_dists, pi_dists)):
+            sample = torch.sum(pi_dist.sample().unsqueeze(2) * normal_dist.sample(), dim=1)
+            samples.append(sample)
+        return samples
+
     def evaluate(self, step):
-        self.model.eval()
+        
         self.test_meter.reset()
         with torch.no_grad(): 
             for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.test_dataset_loader): 
@@ -580,15 +596,21 @@ class Trainer():
                     affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])
                 ]
                 prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)  
-                cel = self.ce_loss(prim_pred, primitive_types)
-                lls = self.loss(params_gt_list, normal_dists, pi_dists)
-                total_ll = torch.stack(lls).sum()
-                total_lls = total_ll + cel
-                self.test_meter.metric_dict['prim_type_loss'].append(cel.item())
-                self.test_meter.metric_dict['total_param_loss'].append(total_ll.item())
+                # cel = self.ce_loss(prim_pred, primitive_types)
+                lls = self.loss(params_gt_list, normal_dists, pi_dists, calculate_mean=False)
                 for idx, ll in enumerate(lls):
-                    self.test_meter.metric_dict[f'{self.hp.parameter_names[idx]}_loss'].append(ll.item())
-                self.test_meter.metric_dict['total_loss'].append(total_lls.item())
+                    new_sum = ll.sum().item()
+                    old_sum = self.test_meter.metric_dict[f'{self.hp.parameter_names[idx]}_loss'] * self.test_meter.count
+                    self.test_meter.metric_dict[f'{self.hp.parameter_names[idx]}_loss'] = (new_sum + old_sum) / (len(ll) + self.test_meter.count)
+                
+                # total_ll = torch.stack(lls).sum()
+                # total_lls = total_ll + cel
+                # self.test_meter.metric_dict['prim_type_loss'].append(cel.item())
+                # self.test_meter.metric_dict['total_param_loss'].append(total_ll.item())
+                # for idx, ll in enumerate(lls):
+                #     new_loss_sum = ll.sum()
+                #     self.test_meter.metric_dict[f'{self.hp.parameter_names[idx]}_loss'] += list(ll)
+                # self.test_meter.metric_dict['total_loss'].append(total_lls.item())
                 
                 prim_types = torch.argmax(prim_pred, dim=1)
                 param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1
