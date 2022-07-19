@@ -1,4 +1,4 @@
-from cmath import isclose
+from cmath import e, isclose
 import sys    
 path_to_module = '/home/xiaoyuz1/sketch_collection'
 sys.path.append(path_to_module)
@@ -27,7 +27,7 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from torch.distributions import Normal, OneHotCategorical
 import json
-
+from sklearn.neighbors import NearestNeighbors
 
 class Constants():
     def __init__(self):
@@ -128,12 +128,12 @@ def prepare_data(df, templates, num_sampled_points = 200, use_projective = False
             # raw_desc = "{} {}".format(entry['text_1'], CONST.angel_parts_idx_dict_doodler[entry['part']])
             # desc = "{} {}".format(entry['no_punc_str_1'], CONST.angel_parts_idx_dict_doodler[entry['part']])
             sketch_data = angel_points[entry['image_1']]
-        
+        data = sketch_data[entry['part']]
         min_template_squared_error = np.inf
         min_M = None
         min_template_idx = None
+        min_result = None
         for template_idx, (_, template) in templates.items():
-            data = sketch_data[entry['part']]
             M = rd.get_transform(template, data, projective=use_projective)
             if use_projective:
                 result = cv2.perspectiveTransform(template, M).reshape(-1,2)
@@ -144,18 +144,84 @@ def prepare_data(df, templates, num_sampled_points = 200, use_projective = False
                 min_template_idx = template_idx
                 min_template_squared_error = squared_error
                 min_M = M.reshape(-1,)
-        all_data.append( {
+                min_result = result
+        transform_mat = np.asarray(min_M).astype(float).reshape(3,3)
+        theta, scale_mat, shear_mat = rd.decompose_affine(transform_mat)
+
+        a,b,c,d,e,f,_,_,_ = min_M
+        info = {
             'category' : entry['category'],
             'image_idx' : entry['image_1'],
             'part' : entry['part'],
-            'raw' : raw_desc,
-            'processed' : desc,
+            'raw' : entry['text_1'],
+            'processed' : entry['no_punc_str_1'],
             'primitive_type' : int(min_template_idx),
             'M' : min_M,
+            "p0" : a,
+            "p1" : b,
+            "p2" : c,
+            "p3" : d,
+            "p4" : e,
+            "p5" : f,
+            "theta" : theta,
+            "sx" : scale_mat[0][0],
+            "sy" : scale_mat[1][1],
+            "hx" : shear_mat[0][1],
+            "tx" : transform_mat[0][2],
+            "ty" : transform_mat[1][2],
             'error' : min_template_squared_error,
             'split' : split_dict[i],
-        })
+            'data' : data,
+            'result' : min_result,
+        }
+        all_data.append(info)
     return all_data
+
+def preprocess_sequence(path, templates, num_sampled_points, use_projective):
+    """Original sequence (procssed with convex hull), template sequence, fitted templated sequence
+
+    Parameters
+    ----------
+    path : _type_
+        _description_
+    num_sampled_points : _type_
+        _description_
+    use_projective : _type_
+        _description_
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+    CONST = Constants()
+    data_raw = pickle.load(open(path, "rb"))
+    all_sequences = []
+    for info in data_raw:
+        if info['category'] == 'face':
+            drawing_raw = CONST.face_json['train_data'][info['image_idx']]
+            part_indices = list(CONST.face_parts_idx_dict_doodler.keys())
+        else:
+            drawing_raw = CONST.angel_json['train_data'][info['image_idx']]
+            part_indices = list(CONST.angel_parts_idx_dict_doodler.keys())
+
+        parts = rd.process_quickdraw_to_part_convex_hull(
+            drawing_raw,
+            part_indices,
+            b_spline_num_sampled_points=num_sampled_points,
+        )
+        data = parts[info['part']]
+        template = templates[info['primitive_type']][1]
+        transform_mat = np.asarray(info['M']).astype(float).reshape(3,3)
+        
+        if use_projective:
+            result = cv2.perspectiveTransform(template, transform_mat).reshape(-1,2)
+        else:
+            result = cv2.transform(np.array([template]).astype(
+                np.float32), transform_mat)[0][:,:-1]
+        
+        all_sequences.append([data, template, result])
+    return all_sequences
 
 class HParams():
     def __init__(self):
@@ -172,21 +238,6 @@ class HParams():
         self.batch_size = 64
         self.lr = 0.001
 
-class CommandParams():
-    def __init__(self):
-        self.enable_wandb = False 
-        self.start_epoch = 0
-        self.num_epochs = 50
-        self.num_workers = 0
-        self.wandb_project_name = "doodler-draw"
-        self.wandb_project_entity = "erinz"
-        self.save_root_folder = "/raid/xiaoyuz1/doodler_model_checkpoint"
-        self.train_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_train.pkl"
-        self.dev_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_val.pkl"
-        self.test_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_test.pkl"
-        self.train_seq_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train_sequences.pkl"
-        self.dev_seq_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_val_sequences.pkl"
-        self.test_seq_file = "/raid/xiaoyuz1/primitive_selector_training_data/july_15_test_sequences.pkl"
 '''
 python primitive_selector.py \
     -enable_wandb \
@@ -263,7 +314,7 @@ GET_AFFINE_FUNCS = {
     "get_affine_transformation_2" : lambda info : get_affine_transformation_2(info),
 }
 
-def preprocess_dataset_language(path):
+def preprocess_dataset_language(path, old=False):
     """Return map from word to word index.
 
     Parameters
@@ -284,57 +335,14 @@ def preprocess_dataset_language(path):
     for info in data_raw:
         description = info['processed']
         [q2i[x] for x in description.lower().strip().split(" ")]
-    for k,v in CONST.face_parts_idx_dict_doodler.items():
-        [q2i[x] for x in v.lower().strip().split(" ")]
-    for k,v in CONST.angel_parts_idx_dict_doodler.items():
-        [q2i[x] for x in v.lower().strip().split(" ")]
+    if not old:
+        for k,v in CONST.face_parts_idx_dict_doodler.items():
+            [q2i[x] for x in v.lower().strip().split(" ")]
+        for k,v in CONST.angel_parts_idx_dict_doodler.items():
+            [q2i[x] for x in v.lower().strip().split(" ")]
     return q2i
 
-def preprocess_sequence(path, templates, num_sampled_points, use_projective):
-    """Original sequence (procssed with convex hull), template sequence, fitted templated sequence
 
-    Parameters
-    ----------
-    path : _type_
-        _description_
-    num_sampled_points : _type_
-        _description_
-    use_projective : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    CONST = Constants()
-    data_raw = pickle.load(open(path, "rb"))
-    all_sequences = []
-    for info in data_raw:
-        if info['category'] == 'face':
-            drawing_raw = CONST.face_json['train_data'][info['image_idx']]
-            part_indices = list(CONST.face_parts_idx_dict_doodler.keys())
-        else:
-            drawing_raw = CONST.angel_json['train_data'][info['image_idx']]
-            part_indices = list(CONST.angel_parts_idx_dict_doodler.keys())
-
-        parts = rd.process_quickdraw_to_part_convex_hull(
-            drawing_raw,
-            part_indices,
-            b_spline_num_sampled_points=num_sampled_points,
-        )
-        data = parts[info['part']]
-        template = templates[info['primitive_type']][1]
-        transform_mat = np.asarray(info['M']).astype(float).reshape(3,3)
-        
-        if use_projective:
-            result = cv2.perspectiveTransform(template, transform_mat).reshape(-1,2)
-        else:
-            result = cv2.transform(np.array([template]).astype(
-                np.float32), transform_mat)[0][:,:-1]
-        
-        all_sequences.append([data, template, result])
-    return all_sequences
 
 def plt_to_image(fig_obj):
     buf = io.BytesIO()
@@ -437,6 +445,17 @@ class PrimitiveSelector(nn.Module):
 
         return prim_pred, normal_dists, pi_dists
 
+def chamfer_distance(x, y):
+  x_nn = NearestNeighbors(n_neighbors=1, leaf_size=1, algorithm='kd_tree', metric='l2').fit(x)
+  min_y_to_x = x_nn.kneighbors(y)[0]
+  y_nn = NearestNeighbors(n_neighbors=1, leaf_size=1, algorithm='kd_tree', metric='l2').fit(y)
+  min_x_to_y = y_nn.kneighbors(x)[0]
+  dist_y_to_x = np.mean(min_y_to_x)
+  dist_x_to_y = np.mean(min_x_to_y)
+  return dist_y_to_x + dist_x_to_y#, dist_y_to_x, dist_x_to_y
+
+def mse_metric(gt_img,pred_img):
+    return np.mean((gt_img.astype(np.float32) - pred_img.astype(np.float32)) ** 2)
 
 class Meter(object):
     def __init__(self, meter_name):
@@ -457,7 +476,7 @@ class Meter(object):
         if pred_type == gt_type:
             self.correct_count += 1 
         self.count += 1
-        mse = np.mean((gt_img.astype(np.float32) - pred_img.astype(np.float32)) ** 2)
+        mse = mse_metric(gt_img, pred_img)
         psnr = 100 if np.isclose(mse, 0.0, rtol=1.0, atol=1e-5) else 20 * np.log10(255 / (np.sqrt(mse)))
         ssim = structural_similarity(gt_img, pred_img, multichannel=False, data_range=255)
         new_mse = self.metric_dict["mse"] + (mse - self.metric_dict["mse"]) / self.count
@@ -466,6 +485,7 @@ class Meter(object):
         self.metric_dict["psnr"] = new_psnr 
         new_ssim = self.metric_dict["ssim"] + (ssim - self.metric_dict["ssim"]) / self.count
         self.metric_dict["ssim"] = new_ssim 
+        return mse, psnr, ssim
     
     def finalize_metric(self):
         metric_print_dict = {
@@ -481,6 +501,46 @@ def print_dict(pd, print_s = []):
         print_s.append(f"{k} : {v}")
     print("\n\t".join(print_s))       
 
+
+def visualize_fitted_primitive(ax, plot_data_dict, last_ax = False):
+    ax.scatter(plot_data_dict["original_data"][:,0], plot_data_dict["original_data"][:,1], s=1, c='b', label = "original data")
+    ax.scatter(plot_data_dict["gt_template_gt_param"][:,0], plot_data_dict["gt_template_gt_param"][:,1], s=1, alpha=0.5, c='r', label="GT Fitted Primitive")
+    ax.scatter(plot_data_dict["gt_template_pred_param"][:,0], plot_data_dict["gt_template_pred_param"][:,1], s=1, c='darkgreen', alpha=0.5, label="GT Primitive Pred Params")
+    ax.scatter(plot_data_dict["pred_template_pred_param"][:,0], plot_data_dict["pred_template_pred_param"][:,1], s=1, c='lime', label="Pred Primitive Pred Params")
+    ax.axis(xmin=-plot_data_dict["canvas_size"],xmax=plot_data_dict["canvas_size"])
+    ax.axis(ymin=plot_data_dict["canvas_size"],ymax=-plot_data_dict["canvas_size"])
+    
+    gt_template_name = plot_data_dict["gt_template_name"]
+    pred_template_name = plot_data_dict["pred_template_name"]
+    desc = plot_data_dict["original_description"]
+    desc2 = plot_data_dict["processed_description"]
+    
+    mse = plot_data_dict["mse"]
+    psnr = plot_data_dict["psnr"]
+    ssim = plot_data_dict["ssim"]
+    chamfer_dist = plot_data_dict["chamfer_dist"]
+    
+    title = f"{gt_template_name},{pred_template_name}\n" 
+    title += f"{desc}\n{desc2}\n"
+    title += f"{mse:.2f} {psnr:.2f} {ssim:.2f} {chamfer_dist:.2f}\n"
+    
+    parameter_names = plot_data_dict["parameter_names"]
+    for pi,(p1,p2) in enumerate(zip(plot_data_dict["gt_params"], plot_data_dict["pred_params"])):
+        if parameter_names[pi] == "theta":
+            p1 = np.degrees(p1)
+            p2 = np.degrees(p2)
+        title += f"{parameter_names[pi]}: {p1:.3f} {p2:.3f}"
+        if pi % 2 == 0:
+            title += "\n"
+        else:
+            title += " | "
+    ax.set_title(title, y=0.7)
+    # ax.legend()
+    if last_ax:
+        handles, labels = ax.get_legend_handles_labels()
+        return handles, labels 
+    else:
+        return None, None    
 
 class Trainer():
     def __init__(self, hp, args, vocab, templates):
@@ -531,10 +591,6 @@ class Trainer():
         self.train_meter = Meter("train")
         
         self.num_pngs_per_row = 3
-        num_rows = args.num_visualize // self.num_pngs_per_row
-        if num_rows * self.num_pngs_per_row < args.num_visualize:
-            num_rows += 1
-        self.num_rows = num_rows
     
     def loss(self, y_list, normal_dists, pi_dists, calculate_mean=True):
         losses = []
@@ -552,7 +608,7 @@ class Trainer():
             #     print(f"{param_idx}: ", torch.exp(loglik))
         return losses
     
-    def calculate_metric(self, descriptions, dataset_indices, prim_types, param_samples, plot_indices=None, train=False):
+    def calculate_metric(self, descriptions, dataset_indices, prim_types, param_samples, plot_indices=None, train=False, plot = False, return_metric=False):
         """_summary_
 
         Parameters
@@ -567,27 +623,38 @@ class Trainer():
         Returns
         -------
         """
-        plot_i = 0
+        
         dataset_indices_plot = []
-        if not train:
-            fig = plt.figure(figsize=(self.num_pngs_per_row * 5, self.num_rows * 5)) 
+        plot_indices = plot_indices if plot_indices is not None else np.arange(len(dataset_indices))
+        if plot:
+            num_visualize = len(plot_indices)
+            num_rows = num_visualize // self.num_pngs_per_row
+            if num_rows * self.num_pngs_per_row < num_visualize:
+                num_rows += 1
+            # fig = plt.figure(figsize=(self.num_pngs_per_row * 5, num_rows * 5)) 
+            fig, axes = plt.subplots(num_rows, self.num_pngs_per_row, figsize=(self.num_pngs_per_row * 5, num_rows * 5))
             fig.patch.set_alpha(1)  
-        for idx, data_idx in enumerate(dataset_indices):
-            data_idx = data_idx.item()
+
+        plot_i = 0
+        for idx in range(len(dataset_indices)):
+            description_tensor = descriptions[idx]
+            data_idx = dataset_indices[idx].item()
             prim_type = prim_types[idx].item()
+            pred_params = [sample[idx].item() for sample in param_samples]
             if train:
                 info = self.train_dataset.data_raw[data_idx]
             else:
                 info = self.test_dataset.data_raw[data_idx]
            
             pred_template_name, pred_template = self.templates[int(prim_type)]
+            gt_template_name,_ = self.templates[int(info["primitive_type"])]
             if train:
-                data, template, result, gt_img = self.train_sequences[data_idx]
+                data, gt_template, gt_fitted_template, gt_img = self.train_sequences[data_idx]
             else:
-                data, template, result, gt_img = self.test_sequences[data_idx]
-            pred_info = {}
-            pred_params = [sample[idx].item() for sample in param_samples]
+                data, gt_template, gt_fitted_template, gt_img = self.test_sequences[data_idx]
             gt_params = [info[self.hp.parameter_names[pi]] for pi in range(len(self.hp.parameter_names))]
+            
+            pred_info = {}
             for pi in range(len(self.hp.parameter_names)):
                 pred_info[self.hp.parameter_names[pi]] = pred_params[pi]
             pred_M = GET_AFFINE_FUNCS[self.hp.get_affine_func_name](pred_info)
@@ -597,51 +664,76 @@ class Trainer():
             else:
                 pred_template_pred_param = cv2.transform(np.array([pred_template]).astype(np.float32), pred_M)[0][:,:-1]
 
-            # gt_img = np.asarray(rd.render_img([result], line_diameter=3))
+            # gt_img = np.asarray(rd.render_img([gt_fitted_template], line_diameter=3))
             pred_img = np.asarray(rd.render_img([pred_template_pred_param], line_diameter=3))
             if train:
-                self.train_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
+                mse, psnr, ssim = self.train_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
             else:
-                self.test_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
+                mse, psnr, ssim = self.test_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
             
-            if not train and idx in plot_indices:
+            chamfer_dist = chamfer_distance(data, pred_template_pred_param)
+            
+            if plot and idx in plot_indices:
+                ax = axes[plot_i // self.num_pngs_per_row][plot_i % self.num_pngs_per_row]
                 dataset_indices_plot.append(data_idx)
-                gt_template_name,_ = self.templates[int(info["primitive_type"])]
-                ax = plt.subplot(self.num_rows, self.num_pngs_per_row, plot_i+1)
-                
                 if self.args.use_projective:
-                    correct_template_pred_param = cv2.perspectiveTransform(template, pred_M).reshape(-1,2)
+                    correct_template_pred_param = cv2.perspectiveTransform(gt_template, pred_M).reshape(-1,2)
                 else:
-                    correct_template_pred_param = cv2.transform(np.array([template]).astype(np.float32), pred_M)[0][:,:-1]
+                    correct_template_pred_param = cv2.transform(np.array([gt_template]).astype(np.float32), pred_M)[0][:,:-1]
                 if self.args.use_projective:
                     pred_template_pred_param = cv2.perspectiveTransform(pred_template, pred_M).reshape(-1,2)
                 else:
                     pred_template_pred_param = cv2.transform(np.array([pred_template]).astype(np.float32), pred_M)[0][:,:-1]
+                desc2 = " ".join([self.train_dataset.vocab_reverse[j.item()] for j in description_tensor])
+                plot_data_dict = {
+                    "original_data" : data,
+                    "gt_template_gt_param" : gt_fitted_template,
+                    "gt_template_pred_param": correct_template_pred_param,
+                    "pred_template_pred_param": pred_template_pred_param,
+                    "canvas_size" : self.args.canvas_size,
+                    "gt_template_name" : gt_template_name,
+                    "pred_template_name" : pred_template_name,
+                    "original_description" : info["processed"],
+                    "processed_description" : desc2,
+                    "mse" : mse,
+                    "psnr" : psnr,
+                    "ssim" : ssim,
+                    "chamfer_dist" : chamfer_dist,
+                    "parameter_names" : self.hp.parameter_names,
+                    "gt_params" : gt_params,
+                    "pred_params" : pred_params,
+                }
+                handles, labels = visualize_fitted_primitive(ax, plot_data_dict, last_ax=plot_i == num_visualize-1)
+                
+                
 
-                ax.scatter(data[:,0], data[:,1], s=1, c='b')
-                ax.scatter(result[:,0], result[:,1], s=1, alpha=0.5, c='r')
-                ax.scatter(correct_template_pred_param[:,0], correct_template_pred_param[:,1], s=1, c='darkred', alpha=0.5)
-                ax.scatter(pred_template_pred_param[:,0], pred_template_pred_param[:,1], s=1, c='lime')
-                plt.xlim(-self.args.canvas_size,self.args.canvas_size)
-                plt.ylim(self.args.canvas_size,-self.args.canvas_size)
+                # ax = plt.subplot(num_rows, self.num_pngs_per_row, plot_i+1)  
+                # ax.scatter(data[:,0], data[:,1], s=1, c='b')
+                # ax.scatter(gt_fitted_template[:,0], gt_fitted_template[:,1], s=1, alpha=0.5, c='r')
+                # ax.scatter(correct_template_pred_param[:,0], correct_template_pred_param[:,1], s=1, c='darkred', alpha=0.5)
+                # ax.scatter(pred_template_pred_param[:,0], pred_template_pred_param[:,1], s=1, c='lime')
+                # plt.xlim(-self.args.canvas_size,self.args.canvas_size)
+                # plt.ylim(self.args.canvas_size,-self.args.canvas_size)
                 
-                title = f"{gt_template_name},{pred_template_name}\n" 
-                desc = info["processed"]
-                desc2 = " ".join([self.test_dataset.vocab_reverse[j.item()] for j in descriptions[idx]])
-                title += f"{desc},{desc2}\n"
+                # title = f"{gt_template_name},{pred_template_name}\n" 
+                # desc = info["processed"]
+                # desc2 = " ".join([self.test_dataset.vocab_reverse[j.item()] for j in description_tensor])
+                # title += f"{desc}\n{desc2}\n"
+                # title += f"{mse:.2f} {psnr:.2f} {ssim:.2f} {chamfer_dist:.2f}\n"
                 
-                for pi,(p1,p2) in enumerate(zip(gt_params, pred_params)):
-                    if self.hp.parameter_names[pi] == "theta":
-                        p1 = np.degrees(p1)
-                        p2 = np.degrees(p2)
-                    title += f"{self.hp.parameter_names[pi]}: {p1:.3f} {p2:.3f}"
-                    if pi % 2 == 0:
-                        title += "\n"
-                    else:
-                        title += " | "
-                ax.set_title(title, y=0.7)
+                # for pi,(p1,p2) in enumerate(zip(gt_params, pred_params)):
+                #     if self.hp.parameter_names[pi] == "theta":
+                #         p1 = np.degrees(p1)
+                #         p2 = np.degrees(p2)
+                #     title += f"{self.hp.parameter_names[pi]}: {p1:.3f} {p2:.3f}"
+                #     if pi % 2 == 0:
+                #         title += "\n"
+                #     else:
+                #         title += " | "
+                # ax.set_title(title, y=0.7)
                 plot_i += 1
-        if not train:
+        fig.legend(handles, labels, loc='lower left')
+        if plot:
             return fig, dataset_indices_plot
        
     def train(self):
@@ -659,9 +751,7 @@ class Trainer():
                 ]
 
                 # prim_pred, pi_list, mu_list, sigma_list = self.model(description_ts_packed)
-                prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)
-                # prim_types = torch.argmax(prim_pred, dim=1)
-                # param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1                
+                prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)         
                 self.optimizer.zero_grad()
                 
                 cel = self.ce_loss(prim_pred, primitive_types)
@@ -692,6 +782,7 @@ class Trainer():
                             description_ts_packed = rnn.pack_sequence(description_ts)
                             
                             description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
+                            prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)
                             prim_types = torch.argmax(prim_pred, dim=1)
                             param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1   
                             _ = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices=None, train=True)
@@ -714,7 +805,7 @@ class Trainer():
             sample = torch.sum(pi_dist.sample().unsqueeze(2) * normal_dist.sample(), dim=1)
             samples.append(sample)
         return samples
-
+    
     def evaluate(self, step):
         
         self.test_meter.reset()
@@ -754,7 +845,7 @@ class Trainer():
                 np.random.seed(123)
                 plot_indices = np.random.choice(len(dataset_indices), self.args.num_visualize, replace=False)
                 
-                fig, dataset_indices_plot = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices)  
+                fig, dataset_indices_plot = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices, plot=True)  
                 image_name = f"{step}-"+",".join([str(x) for x in dataset_indices_plot])
                 fig.suptitle(image_name)
                 if self.enable_wandb:
@@ -774,6 +865,7 @@ class Trainer():
     def save_model(self, step):
         torch_path_name = os.path.join(self.save_folder, f"{step}.pt")
         torch.save({
+            'hp' : self.hp.__dict__,
             'iteration' : step,
             'model_state_dict': self.model.state_dict(),
         }, torch_path_name)

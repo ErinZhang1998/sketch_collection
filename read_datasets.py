@@ -1204,7 +1204,6 @@ def process_quickdraw_to_part_convex_hull(drawing_raw, parts_indices, b_spline_n
                     test_xs = np.linspace(mins[0], maxs[0], 30)
                     test_ys = reg.predict(test_xs.reshape(-1,1))
                     test_data  = np.hstack([test_xs.reshape(-1,1), test_ys.reshape(-1,1)])
-                    
                     mask = np.zeros(len(test_data))
                     mask[:10] = 1
                     np.random.shuffle(mask)
