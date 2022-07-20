@@ -1151,10 +1151,13 @@ def process_quickdraw_to_stroke_no_normalize(drawing_raw, b_spline_degree=3, b_s
         strokes_spline_fitted.append(stroke_sampled)
     return strokes_spline_fitted
 
-def get_strokes_in_parts(drawing_raw, parts_indices):
+def get_strokes_in_parts(drawing_raw, parts_indices, canvas_size = 256):
     drawing_raw = np.asarray(drawing_raw)
     drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
     drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
+
+    drawing_raw[:,0] *= (canvas_size / 256)
+    drawing_raw[:,1] *= (canvas_size / 256)
     
     parts = {}
     for k in parts_indices:

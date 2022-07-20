@@ -24,10 +24,11 @@ import torch.nn.utils.rnn as rnn
 from torch import optim
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-import torch.nn.functional as F
-from torch.distributions import Normal, OneHotCategorical
+import torchvision.transforms as transforms
+
 import json
 from sklearn.neighbors import NearestNeighbors
+from primitive_model import *
 
 class Constants():
     def __init__(self):
@@ -237,6 +238,12 @@ class HParams():
         self.weight_decay = 0.0
         self.batch_size = 64
         self.lr = 0.001
+        # image_encoder and co-attention
+        self.canvas_size = 64
+        self.input_channel = 1 
+        self.cnn_encoder_filters = [16, 32, 64, 128, 512]
+        self.coatt_hidden_dim = 512 
+        self.combined_dim = 30
 
 '''
 python primitive_selector.py \
@@ -255,6 +262,7 @@ def get_args():
     parser.add_argument("-old_vocab_func", action='store_true')
     parser.add_argument("-vocab_file", type=str)
     parser.add_argument("-enable_wandb", action='store_true')
+    parser.add_argument("-use_image", action='store_true')
     parser.add_argument("-start_epoch", type=int, default=0)
     parser.add_argument("-num_epochs", type=int, default=200)
     parser.add_argument("-num_workers", type=int, default=0)
@@ -281,12 +289,18 @@ def get_args():
     parser.add_argument("-batch_size", type=int, default=64)
     parser.add_argument("-lr", type=float, default=0.0001)
 
+    parser.add_argument("-canvas_size", type=int, default=256)
+    parser.add_argument("-input_channel", type=int, default=1)
+    parser.add_argument("-cnn_encoder_filters", nargs='+', default=[16, 32, 64, 128, 512])
+    parser.add_argument("-combined_dim", type=int, default=512)
+    parser.add_argument("-coatt_hidden_dim", type=int, default=30)
+
     parser.add_argument("-save_every", type=int, default=1000)
     parser.add_argument("-print_every", type=int, default=500)
     parser.add_argument("-num_visualize", type=int, default=9)
     parser.add_argument("-num_sampled_points", type=int, default=200)
     parser.add_argument("-use_projective", action="store_true")
-    parser.add_argument("-canvas_size", type=float, default=256.0)
+    
 
     args = parser.parse_args()
     
@@ -355,6 +369,17 @@ def plt_to_image(fig_obj):
     return PIL.Image.open(buf)
 
 def collate_primitivedataset(seq_list):
+    lens = [len(x["description"]) for x in seq_list]
+    seq_order = sorted(range(len(lens)), key=lens.__getitem__, reverse=True)
+    output_dict = {}
+    output_dict["description"] = [seq_list[i]["description"] for i in seq_order]
+    for k in seq_list[0].keys():
+        if k == "description":
+            continue
+        output_dict[k] = torch.stack([seq_list[i][k] for i in seq_order])
+    # import pdb; pdb.set_trace()
+    return output_dict
+    
     description_ts, primitive_types, affine_paramss, indices = zip(*seq_list)
     lens = [len(x) for x in description_ts]
     seq_order = sorted(range(len(lens)), key=lens.__getitem__, reverse=True)
@@ -366,8 +391,9 @@ def collate_primitivedataset(seq_list):
     
     return description_ts, primitive_types, affine_paramss, indices
 
+
 class PrimitiveDataset(Dataset):
-    def __init__(self, path, vocab, parameter_names):
+    def __init__(self, path, vocab, parameter_names, use_image = False, img_transform = None):
         super().__init__()
         self.path = path        
         self.data_raw = pickle.load(open(self.path, "rb"))
@@ -377,6 +403,8 @@ class PrimitiveDataset(Dataset):
         self.vocab_keys = vocab.keys()
         self.vocab_reverse = dict(zip(vocab.values(), vocab.keys()))
         self.parameter_names = parameter_names
+        self.use_image = use_image
+        self.img_transform = img_transform if img_transform is not None else transforms.Compose([transforms.ToTensor()]) 
 
     def __len__(self):
         return len(self.data_raw)
@@ -395,59 +423,18 @@ class PrimitiveDataset(Dataset):
         primitive_type = torch.tensor(info['primitive_type']).long()
         param_list = [info[k] for _,k in self.parameter_names.items()]
         affine_params = torch.FloatTensor(np.array(param_list))
-        return description_t, primitive_type, affine_params, torch.tensor(index).long()
-
-class PrimitiveSelector(nn.Module):
-    def __init__(self, hp):
-        super().__init__()
-        self.hp = hp
-        self.embed = nn.Embedding(hp.vocab_size, hp.word_embed_dim)
-        self.lstm = nn.LSTM(
-            input_size = hp.word_embed_dim, 
-            hidden_size = hp.lstm_output_dim, 
-            num_layers = hp.lstm_layers, 
-            dropout = hp.lstm_drop_prob,
-        )
-
-        self.primitive_fc = nn.Linear(hp.lstm_output_dim, hp.num_primitives)
-        self.gmm_network = nn.Linear(hp.lstm_output_dim, len(hp.parameter_names) * 2 * 1 * hp.M)
-        self.pi_network = nn.Linear(hp.lstm_output_dim, len(hp.parameter_names) * hp.M)
-
-    def forward(self, question):
-        seq_tensor, seq_lengths = rnn.pad_packed_sequence(question, batch_first=True)               
-        embedded_seq_tensor = self.embed(seq_tensor)
-        seq_packed = rnn.pack_padded_sequence(
-            torch.transpose(embedded_seq_tensor,0,1), 
-            seq_lengths)
-        _, (hidden,_) = self.lstm(seq_packed, None)
-        seq_last_layer = hidden[-1] # N x lstm_output_dim
-        prim_pred = self.primitive_fc(seq_last_layer) 
-
-        params = self.gmm_network(seq_last_layer)
-        pis = self.pi_network(seq_last_layer)
-        # mean, sd = torch.split(params, params.shape[1] // 2, dim=1)
-        # mean = torch.stack(mean.split(mean.shape[1] // self.hp.M, 1))
-        # sd = torch.stack(sd.split(sd.shape[1] // self.hp.M, 1))
-        # normal_dist = Normal(mean.transpose(0, 1), (F.elu(sd)+1+1e-7).transpose(0, 1))
-        # pi_dist = OneHotCategorical(logits=pis)
-
-        params_list = torch.split(params, 2 * 1 * self.hp.M, dim=1) # each: N x 2 * M
-        pis_list = torch.split(pis, self.hp.M, dim=1) # each: N x M
         
-        normal_dists, pi_dists = [],[]
-        for i in range(len(self.hp.parameter_names)):
-            param = params_list[i]
-            pi = pis_list[i]
-            mean, sd = torch.split(param, param.shape[1] // 2, dim=1) # each: N x M
-            mean = torch.stack(mean.split(mean.shape[1] // self.hp.M, 1)) # stack N x 1 --> M x N x 1
-            sd = torch.stack(sd.split(sd.shape[1] // self.hp.M, 1)) # M x N x 1
-            normal_dist = Normal(mean.transpose(0, 1), (F.elu(sd)+1+1e-7).transpose(0, 1)) # N x M x 1
-            pi_dist = OneHotCategorical(logits=pi)
+        data_dict = {
+            "description" : description_t,
+            "primitive_type" : primitive_type,
+            "affine_params" : affine_params,
+            "index" : torch.tensor(index).long()
+        }
+        if self.use_image:
+            img = self.transform(PIL.Image.open(info["image_path"]))
+            data_dict["image"] = img
 
-            normal_dists.append(normal_dist)
-            pi_dists.append(pi_dist)
-
-        return prim_pred, normal_dists, pi_dists
+        return data_dict
 
 def chamfer_distance(x, y):
   x_nn = NearestNeighbors(n_neighbors=1, leaf_size=1, algorithm='kd_tree', metric='l2').fit(x)
@@ -539,7 +526,7 @@ def visualize_fitted_primitive(ax, plot_data_dict, last_ax = False):
         return None, None    
 
 class Trainer():
-    def __init__(self, hp, args, vocab, templates):
+    def __init__(self, hp, args, vocab, templates, img_encoder = None):
         
         self.hp = hp
         self.args = args 
@@ -561,8 +548,8 @@ class Trainer():
             os.mkdir(self.save_folder)
         self.templates = templates
         
-        self.train_dataset = PrimitiveDataset(args.train_file, vocab, hp.parameter_names)
-        self.test_dataset = PrimitiveDataset(args.test_file, vocab, hp.parameter_names)
+        self.train_dataset = PrimitiveDataset(args.train_file, vocab, hp.parameter_names, use_image=args.use_image)
+        self.test_dataset = PrimitiveDataset(args.test_file, vocab, hp.parameter_names, use_image=args.use_image)
         self.train_dataset_loader = DataLoader(
             self.train_dataset, 
             batch_size=hp.batch_size, 
@@ -579,7 +566,7 @@ class Trainer():
         self.test_sequences = pickle.load(open(args.test_seq_file, 'rb'))
 
         self.device = "cuda" # if torch.cuda.is_available() else "cpu"
-        self.model = PrimitiveSelector(hp).cuda()
+        self.model = PrimitiveSelector(hp, img_enc=img_encoder).cuda()
         self.optimizer = optim.Adam(self.model.parameters(), lr=hp.lr, weight_decay=hp.weight_decay)
         self.ce_loss = nn.CrossEntropyLoss()
         
@@ -604,7 +591,7 @@ class Trainer():
             #     print(f"{param_idx}: ", torch.exp(loglik))
         return losses
     
-    def calculate_metric(self, descriptions, dataset_indices, prim_types, param_samples, plot_indices=None, train=False, plot = False, return_metric=False):
+    def calculate_metric(self, descriptions, dataset_indices, prim_types, param_samples, plot_indices=None, train=False, plot = False):
         """_summary_
 
         Parameters
@@ -709,32 +696,6 @@ class Trainer():
                 }
                 handles, labels = visualize_fitted_primitive(ax, plot_data_dict, last_ax=plot_i == num_visualize-1)
                 
-                
-
-                # ax = plt.subplot(num_rows, self.num_pngs_per_row, plot_i+1)  
-                # ax.scatter(data[:,0], data[:,1], s=1, c='b')
-                # ax.scatter(gt_fitted_template[:,0], gt_fitted_template[:,1], s=1, alpha=0.5, c='r')
-                # ax.scatter(correct_template_pred_param[:,0], correct_template_pred_param[:,1], s=1, c='darkred', alpha=0.5)
-                # ax.scatter(pred_template_pred_param[:,0], pred_template_pred_param[:,1], s=1, c='lime')
-                # plt.xlim(-self.args.canvas_size,self.args.canvas_size)
-                # plt.ylim(self.args.canvas_size,-self.args.canvas_size)
-                
-                # title = f"{gt_template_name},{pred_template_name}\n" 
-                # desc = info["processed"]
-                # desc2 = " ".join([self.test_dataset.vocab_reverse[j.item()] for j in description_tensor])
-                # title += f"{desc}\n{desc2}\n"
-                # title += f"{mse:.2f} {psnr:.2f} {ssim:.2f} {chamfer_dist:.2f}\n"
-                
-                # for pi,(p1,p2) in enumerate(zip(gt_params, pred_params)):
-                #     if self.hp.parameter_names[pi] == "theta":
-                #         p1 = np.degrees(p1)
-                #         p2 = np.degrees(p2)
-                #     title += f"{self.hp.parameter_names[pi]}: {p1:.3f} {p2:.3f}"
-                #     if pi % 2 == 0:
-                #         title += "\n"
-                #     else:
-                #         title += " | "
-                # ax.set_title(title, y=0.7)
                 plot_i += 1
         
         if plot:
@@ -746,17 +707,22 @@ class Trainer():
         step = 0
         for epoch in range(self.args.start_epoch, self.args.start_epoch + self.args.num_epochs):
         
-            for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.train_dataset_loader):
+            for batch_idx, output_dict in enumerate(self.train_dataset_loader):
+                description_ts = output_dict["description"]
+                primitive_types = output_dict["primitive_type"]
+                affine_paramss = output_dict["affine_params"]
+                dataset_indices = output_dict["index"]
                 description_ts_packed = rnn.pack_sequence(description_ts)
                 
                 description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
-                # params_gt_list = self.make_target(affine_paramss)
-                params_gt_list = [
-                    affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])
-                ]
+                params_gt_list = [affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])]
 
                 # prim_pred, pi_list, mu_list, sigma_list = self.model(description_ts_packed)
-                prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)         
+                if self.args.use_image:
+                    images = output_dict["image"].to(self.device)
+                else: 
+                    images = None
+                prim_pred, normal_dists, pi_dists = self.model(description_ts_packed, image=images)         
                 self.optimizer.zero_grad()
                 
                 cel = self.ce_loss(prim_pred, primitive_types)
@@ -783,14 +749,17 @@ class Trainer():
                 if step % self.args.save_every == 1:
                     self.model.eval()
                     with torch.no_grad(): 
-                        for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.train_dataset_loader):
+                        for batch_idx, output_dict in enumerate(self.train_dataset_loader):
+                            description_ts = output_dict["description"]
+                            primitive_types = output_dict["primitive_type"]
+                            affine_paramss = output_dict["affine_params"]
+                            dataset_indices = output_dict["index"]
                             description_ts_packed = rnn.pack_sequence(description_ts)
-                            
                             description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
                             prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)
                             prim_types = torch.argmax(prim_pred, dim=1)
                             param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1   
-                            _ = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices=None, train=True)
+                            _ = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices=None, train=True, plot=False)
                     log_dict = self.train_meter.finalize_metric()
                     if self.enable_wandb:
                         wandb.log(log_dict, step=step)
@@ -815,20 +784,28 @@ class Trainer():
         
         self.test_meter.reset()
         with torch.no_grad(): 
-            for batch_idx, (description_ts, primitive_types, affine_paramss, dataset_indices) in enumerate(self.test_dataset_loader):
-                try: 
-                    description_ts_packed = rnn.pack_sequence(description_ts)
-                except:
-                    print(description_ts)
-                    for ii, descr in enumerate(description_ts):
-                        desc_str = " ".join([self.test_dataset.vocab_reverse[j.item()] for j in descr])
-                        print(batch_idx, dataset_indices[ii].item(), desc_str)
-                    raise 
+            for batch_idx, output_dict in enumerate(self.test_dataset_loader):
+                description_ts = output_dict["description"]
+                primitive_types = output_dict["primitive_type"]
+                affine_paramss = output_dict["affine_params"]
+                dataset_indices = output_dict["index"]
                 description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
-                params_gt_list = [
-                    affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])
-                ]
-                prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)  
+                description_ts_packed = rnn.pack_sequence(description_ts)
+                # try: 
+                #     description_ts_packed = rnn.pack_sequence(description_ts)
+                # except:
+                #     print(description_ts)
+                #     for ii, descr in enumerate(description_ts):
+                #         desc_str = " ".join([self.test_dataset.vocab_reverse[j.item()] for j in descr])
+                #         print(batch_idx, dataset_indices[ii].item(), desc_str)
+                #     raise 
+                
+                params_gt_list = [affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])]
+                if self.args.use_image:
+                    images = output_dict["image"].to(self.device)
+                else: 
+                    images = None
+                prim_pred, normal_dists, pi_dists = self.model(description_ts_packed, image=images) 
                 # cel = self.ce_loss(prim_pred, primitive_types)
                 lls = self.loss(params_gt_list, normal_dists, pi_dists, calculate_mean=False)
                 for idx, ll in enumerate(lls):
@@ -893,9 +870,12 @@ def main():
         if k == "parameter_names":
             for j,name in enumerate(v):
                 hp.parameter_names[j] = name
-            continue
-        if hasattr(hp, k):
+        elif k == "cnn_encoder_filters":
+            hp.image_output_dim = args.cnn_encoder_filters[-1]
+        elif hasattr(hp, k):
             setattr(hp, k,v)
+        else:
+            continue
 
     lang_file = args.train_file if args.vocab_file is None else args.vocab_file
     vocab = preprocess_dataset_language(lang_file, old=args.old_vocab_func)
@@ -918,7 +898,12 @@ def main():
     for i,(k,v) in enumerate(TEMPLATE_DICT.items()):
         arr = v(args.num_sampled_points)
         templates[i] = (k,arr)
-    trainer = Trainer(hp, args, vocab, templates)
+    
+    if args.use_image:
+        img_encoder = CNN_Encoder(hp.input_channel, filters = hp.cnn_encoder_filters)
+    else:
+        img_encoder = None
+    trainer = Trainer(hp, args, vocab, templates, img_encoder)
     if args.evaluate:
         step = trainer.load_model(args.saved_model_path)
         trainer.evaluate(step)
