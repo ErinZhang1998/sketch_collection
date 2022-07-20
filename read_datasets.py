@@ -1151,6 +1151,22 @@ def process_quickdraw_to_stroke_no_normalize(drawing_raw, b_spline_degree=3, b_s
         strokes_spline_fitted.append(stroke_sampled)
     return strokes_spline_fitted
 
+def get_strokes_in_parts(drawing_raw, parts_indices):
+    drawing_raw = np.asarray(drawing_raw)
+    drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
+    drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
+    
+    parts = {}
+    for k in parts_indices:
+        part = drawing_raw[drawing_raw[:,-1] == k]
+        if len(part) < 1:
+            continue
+        pen_lift_indices = np.where(part[:,2] == 1)[0]+1
+        strokes = np.vsplit(part[:,:2].astype(float), pen_lift_indices)[:-1]
+        part_type = part[0][-1]
+        parts[part_type] = strokes
+    return parts
+
 def process_quickdraw_to_part_convex_hull(drawing_raw, parts_indices, b_spline_num_sampled_points=200):
     drawing_raw = np.asarray(drawing_raw)
     drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25

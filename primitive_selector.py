@@ -240,16 +240,20 @@ class HParams():
 
 '''
 python primitive_selector.py \
-    -enable_wandb \
-    -num_epochs 400 \
-    -train_file /raid/xiaoyuz1/primitive_selector_training_data/july_18_train.pkl \
-    -dev_file /raid/xiaoyuz1/primitive_selector_training_data/july_18_test.pkl \
-    -test_file /raid/xiaoyuz1/primitive_selector_training_data/july_18_test.pkl \
-    -parameter_names p0 p1 p2 p3 p4 p5 \
-    -get_affine_func_name get_affine_transformation_2 
+    -evaluate \
+    -old_vocab_func \
+    -M 10 \
+    -saved_model_path /raid/xiaoyuz1/doodler_model_checkpoint/legendary-sun-11/55001.pt \
+    -vocab_file "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train.pkl"
+
+CUDA_VISIBLE_DEVICES=3 python primitive_selector.py -num_epochs 400 -vocab_file /raid/xiaoyuz1/primitive_selector_training_data/july_18_train.pkl -enable_wandb -parameter_names p0 p1 p2 p3 p4 p5 -get_affine_func_name get_affine_transformation_2 -M 5 -lr 0.001
 '''
 def get_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("-evaluate", action='store_true')
+    parser.add_argument("-saved_model_path", type=str)
+    parser.add_argument("-old_vocab_func", action='store_true')
+    parser.add_argument("-vocab_file", type=str)
     parser.add_argument("-enable_wandb", action='store_true')
     parser.add_argument("-start_epoch", type=int, default=0)
     parser.add_argument("-num_epochs", type=int, default=200)
@@ -470,22 +474,14 @@ class Meter(object):
         self.metric_dict = defaultdict(float)
     
     # def log_loss(self, ll_list):
-        
     
-    def log_metric(self, pred_type, gt_type, gt_img, pred_img):
+    def log_metric(self, pred_type, gt_type, calculated_metrics):
         if pred_type == gt_type:
             self.correct_count += 1 
         self.count += 1
-        mse = mse_metric(gt_img, pred_img)
-        psnr = 100 if np.isclose(mse, 0.0, rtol=1.0, atol=1e-5) else 20 * np.log10(255 / (np.sqrt(mse)))
-        ssim = structural_similarity(gt_img, pred_img, multichannel=False, data_range=255)
-        new_mse = self.metric_dict["mse"] + (mse - self.metric_dict["mse"]) / self.count
-        self.metric_dict["mse"] = new_mse 
-        new_psnr = self.metric_dict["psnr"] + (psnr - self.metric_dict["psnr"]) / self.count
-        self.metric_dict["psnr"] = new_psnr 
-        new_ssim = self.metric_dict["ssim"] + (ssim - self.metric_dict["ssim"]) / self.count
-        self.metric_dict["ssim"] = new_ssim 
-        return mse, psnr, ssim
+        for k,v in calculated_metrics.items():
+            new_v = self.metric_dict[k] + (v - self.metric_dict[k]) / self.count
+            self.metric_dict[k] = new_v 
     
     def finalize_metric(self):
         metric_print_dict = {
@@ -666,12 +662,20 @@ class Trainer():
 
             # gt_img = np.asarray(rd.render_img([gt_fitted_template], line_diameter=3))
             pred_img = np.asarray(rd.render_img([pred_template_pred_param], line_diameter=3))
-            if train:
-                mse, psnr, ssim = self.train_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
-            else:
-                mse, psnr, ssim = self.test_meter.log_metric(prim_type, int(info["primitive_type"]), gt_img, pred_img)
-            
             chamfer_dist = chamfer_distance(data, pred_template_pred_param)
+            mse = mse_metric(gt_img, pred_img)
+            psnr = 100 if np.isclose(mse, 0.0, rtol=1.0, atol=1e-5) else 20 * np.log10(255 / (np.sqrt(mse)))
+            ssim = structural_similarity(gt_img, pred_img, multichannel=False, data_range=255)
+            calculated_metrics = {
+                "mse" : mse,
+                "psnr" : psnr,
+                "ssim" : ssim,
+                "chamfer" : chamfer_dist,
+            }
+            if train:
+                self.train_meter.log_metric(prim_type, int(info["primitive_type"]), calculated_metrics)
+            else:
+                self.test_meter.log_metric(prim_type, int(info["primitive_type"]), calculated_metrics)
             
             if plot and idx in plot_indices:
                 ax = axes[plot_i // self.num_pngs_per_row][plot_i % self.num_pngs_per_row]
@@ -732,8 +736,9 @@ class Trainer():
                 #         title += " | "
                 # ax.set_title(title, y=0.7)
                 plot_i += 1
-        fig.legend(handles, labels, loc='lower left')
+        
         if plot:
+            fig.legend(handles, labels, loc='lower left')
             return fig, dataset_indices_plot
        
     def train(self):
@@ -829,6 +834,7 @@ class Trainer():
                 for idx, ll in enumerate(lls):
                     new_sum = ll.sum().item()
                     old_sum = self.test_meter.metric_dict[f'{self.hp.parameter_names[idx]}_loss'] * self.test_meter.count
+                    # !!!!! IMPORTANT: calculate loss metric before image metric since self.test_meter.count will change!!!
                     self.test_meter.metric_dict[f'{self.hp.parameter_names[idx]}_loss'] = (new_sum + old_sum) / (len(ll) + self.test_meter.count)
                 
                 # total_ll = torch.stack(lls).sum()
@@ -873,7 +879,9 @@ class Trainer():
     def load_model(self, model_path):
         ckpt = torch.load(model_path)
         self.model.load_state_dict(ckpt['model_state_dict'])
-
+        if "hp" in ckpt:
+            self.hp = ckpt["hp"]
+        return ckpt["iteration"]
 
 def main():
     wandb.login()
@@ -889,7 +897,8 @@ def main():
         if hasattr(hp, k):
             setattr(hp, k,v)
 
-    vocab = preprocess_dataset_language(args.train_file)
+    lang_file = args.train_file if args.vocab_file is None else args.vocab_file
+    vocab = preprocess_dataset_language(lang_file, old=args.old_vocab_func)
     hp.vocab_size = len(vocab)
     # TEMPLATE_DICT = {
     #     'arc' : lambda n : rd.generate_arc(n1=n, radius=10, x0=0, y0=0, template_size=w),
@@ -910,7 +919,11 @@ def main():
         arr = v(args.num_sampled_points)
         templates[i] = (k,arr)
     trainer = Trainer(hp, args, vocab, templates)
-    trainer.train()
+    if args.evaluate:
+        step = trainer.load_model(args.saved_model_path)
+        trainer.evaluate(step)
+    else:
+        trainer.train()
 
 if __name__ == "__main__":
     main()
