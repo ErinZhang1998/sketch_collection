@@ -1142,7 +1142,7 @@ def process_quickdraw_to_stroke_no_normalize(drawing_raw, b_spline_degree=3, b_s
         mins = np.min(stroke, axis=0)
         ll = maxs - mins
         
-        if np.any(np.isclose(ll, 1e-8, rtol=1, atol=1e-07)):
+        if np.any(np.isclose(ll, 0, atol=1e-07)):
             stroke_sampled = square_from_line(stroke)
         else:
             stroke_sampled = bspline(stroke, n=b_spline_num_sampled_points, degree=b_spline_degree)
@@ -1151,94 +1151,96 @@ def process_quickdraw_to_stroke_no_normalize(drawing_raw, b_spline_degree=3, b_s
         strokes_spline_fitted.append(stroke_sampled)
     return strokes_spline_fitted
 
-def get_strokes_in_parts(drawing_raw, parts_indices, canvas_size = 256):
-    drawing_raw = np.asarray(drawing_raw)
-    drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
-    drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
+def quickdraw_to_image_idx_stroke_idx_format(drawing_arr, path):
+    d = collections.defaultdict(lambda : {})
+    for image_idx, drawing_raw in enumerate(drawing_arr):
+        drawing_raw = np.asarray(drawing_raw)
+        drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
+        drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
+        pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
+        strokes = np.vsplit(drawing_raw.astype(float), pen_lift_indices)[:-1]
+        for stroke_idx, stroke in enumerate(strokes):
+            d[image_idx][stroke_idx] = stroke
+    
+    with open(path, "wb+") as f:
+        pickle.dump(d, f)
 
-    drawing_raw[:,0] *= (canvas_size / 256)
-    drawing_raw[:,1] *= (canvas_size / 256)
-    
-    parts = {}
-    for k in parts_indices:
-        part = drawing_raw[drawing_raw[:,-1] == k]
-        if len(part) < 1:
-            continue
-        pen_lift_indices = np.where(part[:,2] == 1)[0]+1
-        strokes = np.vsplit(part[:,:2].astype(float), pen_lift_indices)[:-1]
-        part_type = part[0][-1]
-        parts[part_type] = strokes
-    return parts
-
-def process_quickdraw_to_part_convex_hull(drawing_raw, parts_indices, b_spline_num_sampled_points=200):
-    drawing_raw = np.asarray(drawing_raw)
-    drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
-    drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
-    
-    parts = []
-    for k in parts_indices:
-        strokes = drawing_raw[drawing_raw[:,-1] == k]
-        if len(strokes) < 1:
-            continue
-        parts.append(strokes)
-    
-    strokes_spline_fitted = {}
-    for part in parts:
-        part_type = part[0][-1]
-        strokes = part[:,:2]
-        maxs = np.max(strokes, axis=0)
-        mins = np.min(strokes, axis=0)
-        ll = maxs - mins
-        
-        more_than_3 = len(strokes) >= 3
-        has_length_x =  not np.isclose(ll[0], 0.0, rtol=1, atol=1e-05)
-        has_length_y = not np.isclose(ll[1], 0.0, rtol=1, atol=1e-05)
-        one_stroke = np.sum(part[:,2] == 1) < 2
-        
-        if one_stroke and more_than_3 and has_length_x and has_length_y:
-            hull_vert = strokes
-        else:
-            if more_than_3 and has_length_x and has_length_y:
-                hull = ConvexHull(strokes)
-                hull_vert = strokes[hull.vertices]
-            else:
+def get_previous_and_current_strokes(drawing_arr):
+    result_d = collections.defaultdict(lambda : collections.defaultdict(lambda : (np.inf,-1,[],[])))
+    for image_idx, drawing_raw in enumerate(drawing_arr):
+        drawing_raw = np.asarray(drawing_raw)
+        drawing_raw[:,0] = np.cumsum(drawing_raw[:,0], 0) + 25
+        drawing_raw[:,1] = np.cumsum(drawing_raw[:,1], 0) + 25
+        pen_lift_indices = np.where(drawing_raw[:,2] == 1)[0]+1
+        strokes = np.vsplit(drawing_raw.astype(float), pen_lift_indices)[:-1]
+        for stroke_idx, stroke in enumerate(strokes):
             
-                if not has_length_x:
-                    reg = LinearRegression().fit(strokes[:,1].reshape(-1,1), strokes[:,0])
-                    test_xs = np.linspace(mins[1], maxs[1], 30)
-                    test_ys = reg.predict(test_xs.reshape(-1,1))
-                    test_data  = np.hstack([test_xs.reshape(-1,1), test_ys.reshape(-1,1)])
-                    mask = np.zeros(len(test_data))
-                    mask[:10] = 1
-                    np.random.shuffle(mask)
-                    # test_data = test_data + (np.random.normal(0, 0.05, len(test_data)) * mask).reshape(-1,1)
-                    test_data[:,1] = test_data[:,1] + (np.random.normal(0, 0.05, len(test_data)) * mask)
-                    hull = ConvexHull(test_data)
-                    hull_vert = np.hstack([
-                        test_data[hull.vertices][:,1:],
-                        test_data[hull.vertices][:,:1],
-                    ])
+            part_type = int(stroke[0][-1])
+            a,b,c,d = result_d[image_idx][part_type]
+            c.append(stroke)
+            try:
+                if a == np.inf:
+                    result_d[image_idx][part_type] = (min(a, stroke_idx), max(b, stroke_idx), c, strokes[:stroke_idx])
                 else:
-                    reg = LinearRegression().fit(strokes[:,0].reshape(-1,1), strokes[:,1])
-                    test_xs = np.linspace(mins[0], maxs[0], 30)
-                    test_ys = reg.predict(test_xs.reshape(-1,1))
-                    test_data  = np.hstack([test_xs.reshape(-1,1), test_ys.reshape(-1,1)])
-                    mask = np.zeros(len(test_data))
-                    mask[:10] = 1
-                    np.random.shuffle(mask)
-                    # test_data = test_data + (np.random.normal(0, 0.05, len(test_data)) * mask).reshape(-1,1)
-                    if not has_length_y:
-                        test_data[:,1] = test_data[:,1] + (np.random.normal(0, 0.05, len(test_data)) * mask)
-                    else:
-                        test_data[:,0] = test_data[:,0] + (np.random.normal(0, 0.05, len(test_data)) * mask)
-                    hull = ConvexHull(test_data)
-                    hull_vert = test_data[hull.vertices]
+                    result_d[image_idx][part_type] = (min(a, stroke_idx), max(b, stroke_idx), c, d)
+            except:
+                print(a,b,c,d,strokes[:stroke_idx])
+    return result_d
 
-            hull_vert = np.concatenate([hull_vert, hull_vert[0].reshape(1,-1)])        
-        stroke_sampled = interpcurve(b_spline_num_sampled_points, hull_vert[:,0], hull_vert[:,1])
-        strokes_spline_fitted[part_type] = stroke_sampled
+def process_quickdraw_to_part_convex_hull(part, b_spline_num_sampled_points=200):
+    strokes = np.vstack(part)[:,:2]
+    maxs = np.max(strokes, axis=0)
+    mins = np.min(strokes, axis=0)
+    ll = maxs - mins
     
-    return strokes_spline_fitted
+    one_stroke = len(part) > 1
+    more_than_3_points = len(strokes) >= 3
+    has_length_x =  not np.isclose(ll[0], 0.0, rtol=1, atol=1e-05)
+    has_length_y = not np.isclose(ll[1], 0.0, rtol=1, atol=1e-05)
+        
+    if one_stroke and more_than_3_points and has_length_x and has_length_y:
+        hull_vert = strokes
+    else:
+        if more_than_3_points and has_length_x and has_length_y:
+            hull = ConvexHull(strokes)
+            hull_vert = strokes[hull.vertices]
+        else:
+        
+            if not has_length_x:
+                reg = LinearRegression().fit(strokes[:,1].reshape(-1,1), strokes[:,0])
+                test_xs = np.linspace(mins[1], maxs[1], 30)
+                test_ys = reg.predict(test_xs.reshape(-1,1))
+                test_data  = np.hstack([test_xs.reshape(-1,1), test_ys.reshape(-1,1)])
+                mask = np.zeros(len(test_data))
+                mask[:10] = 1
+                np.random.shuffle(mask)
+
+                test_data[:,1] = test_data[:,1] + (np.random.normal(0, 0.05, len(test_data)) * mask)
+                hull = ConvexHull(test_data)
+                hull_vert = np.hstack([
+                    test_data[hull.vertices][:,1:],
+                    test_data[hull.vertices][:,:1],
+                ])
+            else:
+                reg = LinearRegression().fit(strokes[:,0].reshape(-1,1), strokes[:,1])
+                test_xs = np.linspace(mins[0], maxs[0], 30)
+                test_ys = reg.predict(test_xs.reshape(-1,1))
+                test_data  = np.hstack([test_xs.reshape(-1,1), test_ys.reshape(-1,1)])
+                mask = np.zeros(len(test_data))
+                mask[:10] = 1
+                np.random.shuffle(mask)
+
+                if not has_length_y:
+                    test_data[:,1] = test_data[:,1] + (np.random.normal(0, 0.05, len(test_data)) * mask)
+                else:
+                    test_data[:,0] = test_data[:,0] + (np.random.normal(0, 0.05, len(test_data)) * mask)
+                hull = ConvexHull(test_data)
+                hull_vert = test_data[hull.vertices]
+
+        hull_vert = np.concatenate([hull_vert, hull_vert[0].reshape(1,-1)])        
+    part_sampled = interpcurve(b_spline_num_sampled_points, hull_vert[:,0], hull_vert[:,1])
+    return part_sampled
+    
 
 def process_all_to_part_convex_hull(drawing_arr, part_indices, num_sampled_points):
     results = {}

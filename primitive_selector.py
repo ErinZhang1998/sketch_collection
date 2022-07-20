@@ -91,7 +91,17 @@ def create_split(arr_length):
 
     return split_dict
 
-def prepare_data(df, templates, num_sampled_points = 200, use_projective = False):
+def rescale_stroke(stroke, canvas_size, original_size):
+    stroke[:, 0] *= canvas_size/original_size
+    stroke[:, 1] *= canvas_size/original_size
+    return stroke
+
+def image_bit(img, bkg = 255):
+    img[np.isclose(img, bkg, atol=1e-05)] = 0
+    img[not np.isclose(img, bkg, atol=1e-05)] = 1
+    return img
+
+def prepare_data(df, templates, img_root_path, line_diameter=3, canvas_size = 64, num_sampled_points = 200, use_projective = False):
     """Prepare and face and angel data for PrimitiveSelector training.
     Parameters
     ----------
@@ -116,20 +126,22 @@ def prepare_data(df, templates, num_sampled_points = 200, use_projective = False
     all_data = []
     face_sketches = CONST.face_json['train_data']
     angel_sketches = CONST.angel_json['train_data']
-    face_points = rd.process_all_to_part_convex_hull(face_sketches, list(CONST.face_parts_idx_dict_doodler.keys()), num_sampled_points)
-    angel_points = rd.process_all_to_part_convex_hull(angel_sketches, list(CONST.angel_parts_idx_dict_doodler.keys()), num_sampled_points)
     
+    face_d = rd.get_previous_and_current_strokes(face_sketches)
+    angel_d = rd.get_previous_and_current_strokes(angel_sketches)
+
     for i in tqdm(range(len(df))):
         entry = df.iloc[i]
         if entry['category'] == 'face':
-            # raw_desc = "{} {}".format(entry['text_1'], CONST.face_parts_idx_dict_doodler[entry['part']])
-            # desc = "{} {}".format(entry['no_punc_str_1'], CONST.face_parts_idx_dict_doodler[entry['part']])
-            sketch_data = face_points[entry['image_1']]
+            _,_,current_strokes, previous_strokes = face_d[entry['image_1']][entry['part']]
         else:
-            # raw_desc = "{} {}".format(entry['text_1'], CONST.angel_parts_idx_dict_doodler[entry['part']])
-            # desc = "{} {}".format(entry['no_punc_str_1'], CONST.angel_parts_idx_dict_doodler[entry['part']])
-            sketch_data = angel_points[entry['image_1']]
-        data = sketch_data[entry['part']]
+            _,_,current_strokes, previous_strokes = angel_d[entry['image_1']][entry['part']]
+        current_strokes = [rescale_stroke(x, canvas_size, 256) for x in current_strokes]
+        previous_strokes = [rescale_stroke(x, canvas_size, 256) for x in previous_strokes]
+        data = rd.process_quickdraw_to_part_convex_hull(current_strokes, b_spline_num_sampled_points=num_sampled_points)
+        img_path = os.path.join(img_root_path, f"{entry['image_1']}_{entry['part']}.png")
+        img = rd.render_img(previous_strokes, img_path=img_path, side=canvas_size, line_diameter=line_diameter, original_side = canvas_size)
+        
         min_template_squared_error = np.inf
         min_M = None
         min_template_idx = None
@@ -157,6 +169,7 @@ def prepare_data(df, templates, num_sampled_points = 200, use_projective = False
             'raw' : entry['text_1'],
             'processed' : entry['no_punc_str_1'],
             'primitive_type' : int(min_template_idx),
+            'image_path' : img_path,
             'M' : min_M,
             "p0" : a,
             "p1" : b,
@@ -651,7 +664,7 @@ class Trainer():
             pred_img = np.asarray(rd.render_img([pred_template_pred_param], line_diameter=3))
             chamfer_dist = chamfer_distance(data, pred_template_pred_param)
             mse = mse_metric(gt_img, pred_img)
-            psnr = 100 if np.isclose(mse, 0.0, rtol=1.0, atol=1e-5) else 20 * np.log10(255 / (np.sqrt(mse)))
+            psnr = 100 if np.isclose(mse, 0.0, rtol=0.0, atol=1e-5) else 20 * np.log10(255 / (np.sqrt(mse)))
             ssim = structural_similarity(gt_img, pred_img, multichannel=False, data_range=255)
             calculated_metrics = {
                 "mse" : mse,
@@ -789,8 +802,9 @@ class Trainer():
                 primitive_types = output_dict["primitive_type"]
                 affine_paramss = output_dict["affine_params"]
                 dataset_indices = output_dict["index"]
-                description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
                 description_ts_packed = rnn.pack_sequence(description_ts)
+                description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
+                
                 # try: 
                 #     description_ts_packed = rnn.pack_sequence(description_ts)
                 # except:
@@ -801,10 +815,7 @@ class Trainer():
                 #     raise 
                 
                 params_gt_list = [affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])]
-                if self.args.use_image:
-                    images = output_dict["image"].to(self.device)
-                else: 
-                    images = None
+                images = output_dict["image"].to(self.device) if self.args.use_image else None
                 prim_pred, normal_dists, pi_dists = self.model(description_ts_packed, image=images) 
                 # cel = self.ce_loss(prim_pred, primitive_types)
                 lls = self.loss(params_gt_list, normal_dists, pi_dists, calculate_mean=False)
