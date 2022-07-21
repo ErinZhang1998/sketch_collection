@@ -370,15 +370,15 @@ def create_im(json_file, i, part_idxs=[]):
 
 def render_img(
     vector_part, 
+    side=256,
+    original_side = 256.,
+    line_diameter=10,
     img_path=None, 
     show=False,
-    side=256,
-    line_diameter=10,
     padding=0,
     bg_color=(0,0,0),
     fg_color=(1,1,1),
-    original_side = 256.,
-    convert = True,
+    invert = True,
 ):
 
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, side, side)
@@ -410,12 +410,12 @@ def render_img(
     surface_data = surface.get_data()
     image = np.copy(np.asarray(surface_data))[::4].reshape(side, side)
     image = PIL.Image.fromarray(image).convert("L")
-    if convert:
-        # ????
+    if invert:
         image = PIL.ImageOps.invert(image)
     
     if img_path is not None:
         image.save(img_path)
+    
     if show:
         arr = np.asarray(image)
         plt.imshow(arr, cmap='gray', vmin=0, vmax=255)

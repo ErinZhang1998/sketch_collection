@@ -4,18 +4,19 @@ import torch.nn as nn
 import torch.nn.utils.rnn as rnn
 import torch.nn.functional as F
 from torch.distributions import Normal, OneHotCategorical
-
+# 
 class ConvBlock(nn.Module):
-    def __init__(self, input_channels, filters, downsample=True):
+    def __init__(self, input_channels, filters, is_not_last=True):
         super().__init__()
-        self.net = nn.Sequential(
+        layers = [
             nn.Conv2d(input_channels, filters, 3, padding=1),
-            nn.ReLU(), #n.LeakyReLU(0.2, inplace=True)
-            # nn.Conv2d(filters, filters, 3, padding=1),
-            # nn.ReLU(), #n.LeakyReLU(0.2, inplace=True)
-        )
-
-        self.downsample = nn.Conv2d(filters, filters, 3, padding = 1, stride = 2) if downsample else None
+        ]
+        if not is_not_last:
+            layers.append(nn.Tanh())
+        else:
+            layers.append(nn.ReLU()) # DoodlerGAN: nn.LeakyReLU(0.2, inplace=True)
+        self.net = nn.Sequential(*layers)
+        self.downsample = nn.Conv2d(filters, filters, 3, padding = 1, stride = 2) if is_not_last else None
 
     def forward(self, x):
         x = self.net(x)
@@ -24,8 +25,8 @@ class ConvBlock(nn.Module):
         return x
 
 def zscore_canvases(x):
-    return (x - 0.0243)/0.1383
-
+    # return (x - 0.0243)/0.1383
+    return (x - 0.0673) / 0.2356
 
 class CNN_Encoder(nn.Module):
     def __init__(self, input_channel, filters = [16, 32, 64, 128, 512]):
@@ -35,16 +36,17 @@ class CNN_Encoder(nn.Module):
         conv_blocks = []
         for ind,(chan_in, chan_out) in enumerate(chan_in_out):
             is_not_last = ind < (len(chan_in_out) - 1)
-            block = ConvBlock(chan_in, chan_out, downsample=is_not_last)
+            block = ConvBlock(chan_in, chan_out, is_not_last=is_not_last)
             conv_blocks.append(block)
-        self.encoder = nn.ModuleList(conv_blocks)
+        # self.encoder = nn.ModuleList(conv_blocks)
+        self.encoder = nn.Sequential(*conv_blocks)
         #nn.Tanh()
     
     def forward(self, x):
         x = zscore_canvases(x)
         x = self.encoder(x) # (N, image_output_dim, 4 x 4)
-        x = x.permute(0,2,3,1) 
-        x = x.view(x.size(0),-1,x.size(-1)) 
+        # x = x.permute(0,2,3,1) 
+        x = x.view(x.size(0),x.size(1),-1) 
         return x
 
 class Combine(nn.Module):
@@ -52,7 +54,7 @@ class Combine(nn.Module):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(lstm_output_dim + image_output_dim, output_dim),
-            nn.Tanh()
+            nn.Tanh(),
         )
 
     def forward(self, v, q):
@@ -74,6 +76,8 @@ class CoAttention(nn.Module):
         self.W_q = nn.Parameter(torch.randn(coatt_hidden_dim, lstm_output_dim))
         self.w_hv = nn.Parameter(torch.randn(coatt_hidden_dim, 1))
         self.w_hq = nn.Parameter(torch.randn(coatt_hidden_dim, 1))
+        
+        self.tanh = nn.Tanh()
     
     def forward(self, V, Q):
         """
@@ -139,12 +143,13 @@ class PrimitiveSelector(nn.Module):
         seq_packed = rnn.pack_padded_sequence(
             torch.transpose(embedded_seq_tensor,0,1), 
             seq_lengths)
-        h, (hidden,_) = self.lstm(seq_packed, None) # h is L x N x lstm_output_dim
+        packed_output, (hidden,_) = self.lstm(seq_packed, None) # h is L x N x lstm_output_dim
         
         if image is not None:
             img_feat = self.img_enc(image) # (N, image_output_dim, I)
-            h = torch.transpose(h, 0, 1) # N x L x lstm_output_dim
-            v,q = self.coatt(img_feat, h)
+            h_output, input_sizes = rnn.pad_packed_sequence(packed_output)
+            h_output = torch.transpose(h_output, 0, 1) # N x L x lstm_output_dim
+            v,q = self.coatt(img_feat, h_output)
             y = self.combine_net(v,q)
         else: 
             y = hidden[-1] # N x lstm_output_dim

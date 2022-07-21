@@ -102,23 +102,30 @@ def image_bit(img, bkg = 255):
     img[not np.isclose(img, bkg, atol=1e-05)] = 1
     return img
 
+def calculate_image_dataset_mean_std(image_dir = "/raid/xiaoyuz1/doodler_primitive_data", image_size = 64):
+    psum    = torch.tensor([0.0])
+    psum_sq = torch.tensor([0.0])
+
+    for p in os.listdir(image_dir):
+        path = os.path.join(image_dir, p)
+        im = PIL.Image.open(path)
+        im = transforms.ToTensor()(im)
+        psum    += im.sum()
+        psum_sq += (im ** 2).sum()
+        
+    # pixel count
+    count = len(os.listdir(image_dir)) * image_size * image_size
+
+    # mean and std
+    total_mean = psum / count
+    total_var  = (psum_sq / count) - (total_mean ** 2)
+    total_std  = torch.sqrt(total_var)
+
+    # output
+    print('mean: '  + str(total_mean))
+    print('std:  '  + str(total_std))
+
 def prepare_data(df, templates, img_root_path, save_path_prefix = None, line_diameter=3, canvas_size = 64, num_sampled_points = 200, use_projective = False):
-    """Prepare and face and angel data for PrimitiveSelector training.
-    Parameters
-    ----------
-    df : panda.DataFrame
-        _description_
-    templates : dict
-        Mapping from template index to (template name, template numpy array (num_sampled_points, 2))
-    num_sampled_points : int, optional
-        Number of points to sample in each part, by default 200
-    use_projective : bool, optional
-        Whether to predict parameters for affine or projective transformation, by default False
-    Returns
-    -------
-    all_data : list of dict
-        List containing all the data to train PrimitiveSelector model.
-    """
     import cv2
     from sklearn.metrics import mean_squared_error
     from tqdm import tqdm
@@ -142,7 +149,7 @@ def prepare_data(df, templates, img_root_path, save_path_prefix = None, line_dia
         data = rd.process_quickdraw_to_part_convex_hull(current_strokes, b_spline_num_sampled_points=num_sampled_points)
         img_path = os.path.join(img_root_path, f"{entry['category']}_{entry['image_1']}_{entry['part']}_history.png")
 
-        img = rd.render_img(previous_strokes, img_path=img_path, side=canvas_size, line_diameter=line_diameter, original_side = canvas_size)
+        img = rd.render_img(previous_strokes, img_path=img_path, side=canvas_size, line_diameter=line_diameter, original_side = canvas_size, invert=False)
         
         min_template_squared_error = np.inf
         min_M = None
@@ -162,6 +169,9 @@ def prepare_data(df, templates, img_root_path, save_path_prefix = None, line_dia
                 min_result = result
         transform_mat = np.asarray(min_M).astype(float).reshape(3,3)
         theta, scale_mat, shear_mat = rd.decompose_affine(transform_mat)
+        
+        gt_fitted_img = rd.render_img([min_result], side=canvas_size, line_diameter=line_diameter, original_side = canvas_size, invert=False)
+        gt_fitted_img = transforms.ToTensor()(gt_fitted_img).squeeze(0).numpy()
 
         a,b,c,d,e,f,_,_,_ = min_M
         info = {
@@ -191,6 +201,7 @@ def prepare_data(df, templates, img_root_path, save_path_prefix = None, line_dia
             'result' : min_result,
             "current_strokes" : current_strokes,
             "previous_strokes" : previous_strokes,
+            "gt_img" : gt_fitted_img,
         }
         all_data.append(info)
     if save_path_prefix is not None:
@@ -216,7 +227,7 @@ def prepare_data(df, templates, img_root_path, save_path_prefix = None, line_dia
                 "use_projective" : use_projective,
             }
             with open(f"{save_path_prefix}_{t}.pkl", "wb+") as f:
-                pickle.dump(data_split, f)
+                pickle.dump(save_dict, f)
 
     return all_data
 
@@ -296,6 +307,9 @@ python primitive_selector.py \
     -vocab_file "/raid/xiaoyuz1/primitive_selector_training_data/july_15_train.pkl"
 
 CUDA_VISIBLE_DEVICES=3 python primitive_selector.py -num_epochs 400 -vocab_file /raid/xiaoyuz1/primitive_selector_training_data/july_18_train.pkl -enable_wandb -parameter_names p0 p1 p2 p3 p4 p5 -get_affine_func_name get_affine_transformation_2 -M 5 -lr 0.001
+
+CUDA_VISIBLE_DEVICES=3 python primitive_selector.py -num_epochs 400 -vocab_file /raid/xiaoyuz1/primitive_selector_training_data/july_18_train.pkl -train_file /raid/xiaoyuz1/primitive_selector_training_data/jul_20_train.pkl -test_file /raid/xiaoyuz1/primitive_selector_training_data/jul_20_test.pkl -lr 0.001 
+
 '''
 def get_args():
     parser = argparse.ArgumentParser()
@@ -310,7 +324,7 @@ def get_args():
     parser.add_argument("-num_workers", type=int, default=0)
     parser.add_argument("-wandb_project_name", type=str, default="doodler-draw")
     parser.add_argument("-wandb_project_entity", type=str, default="erinz")
-    parser.add_argument("-save_root_folder", type=str, default="/raid/xiaoyuz1/doodler_model_checkpoint")
+    parser.add_argument("-save_root_folder", type=str, default="/raid/xiaoyuz1/doodler_model_checkpoint/cnn_encoder_coatt")
     parser.add_argument("-train_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_train.pkl")
     parser.add_argument("-dev_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_dev.pkl")
     parser.add_argument("-test_file", type=str, default = "/raid/xiaoyuz1/primitive_selector_training_data/july_18_test.pkl")
@@ -331,7 +345,6 @@ def get_args():
     parser.add_argument("-batch_size", type=int, default=64)
     parser.add_argument("-lr", type=float, default=0.0001)
 
-    parser.add_argument("-canvas_size", type=int, default=256)
     parser.add_argument("-input_channel", type=int, default=1)
     parser.add_argument("-cnn_encoder_filters", nargs='+', default=[16, 32, 64, 128, 512])
     parser.add_argument("-combined_dim", type=int, default=512)
@@ -416,10 +429,8 @@ def collate_primitivedataset(seq_list):
     output_dict = {}
     output_dict["description"] = [seq_list[i]["description"] for i in seq_order]
     for k in seq_list[0].keys():
-        if k == "description":
-            continue
+        if k == "description": continue
         output_dict[k] = torch.stack([seq_list[i][k] for i in seq_order])
-    # import pdb; pdb.set_trace()
     return output_dict
     
     description_ts, primitive_types, affine_paramss, indices = zip(*seq_list)
@@ -438,7 +449,21 @@ class PrimitiveDataset(Dataset):
     def __init__(self, path, vocab, parameter_names, use_image = False, img_transform = None):
         super().__init__()
         self.path = path        
-        self.data_raw = pickle.load(open(self.path, "rb"))
+        all_data = pickle.load(open(self.path, "rb"))
+        
+        if type(all_data) is list:
+            self.data_raw = all_data
+            self.line_diameter = 3
+            self.canvas_size = 512
+            self.num_sampled_points = 200
+            self.use_projective = False
+        else:
+            self.data_raw = all_data["all"]
+            self.line_diameter = all_data["line_diameter"]
+            self.canvas_size = all_data["canvas_size"]
+            self.num_sampled_points = all_data["num_sampled_points"]
+            self.use_projective = all_data["use_projective"]
+            
         # self.df = pd.DataFrame(self.data_raw)
 
         self.vocab = vocab
@@ -473,7 +498,7 @@ class PrimitiveDataset(Dataset):
             "index" : torch.tensor(index).long()
         }
         if self.use_image:
-            img = self.transform(PIL.Image.open(info["image_path"]))
+            img = self.img_transform(PIL.Image.open(info["image_path"]))
             data_dict["image"] = img
 
         return data_dict
@@ -528,6 +553,9 @@ def print_dict(pd, print_s = []):
 
 
 def visualize_fitted_primitive(ax, plot_data_dict, last_ax = False):
+    if plot_data_dict["image"] is not None: ax.imshow(plot_data_dict["image"], cmap='gray')
+    # for prev_s in plot_data_dict["previous_strokes"]:
+    #     ax.scatter(prev_s[:,0], prev_s[:,1], s=1, c='black', label="previous")
     ax.scatter(plot_data_dict["original_data"][:,0], plot_data_dict["original_data"][:,1], s=1, c='b', label = "original data")
     ax.scatter(plot_data_dict["gt_template_gt_param"][:,0], plot_data_dict["gt_template_gt_param"][:,1], s=1, alpha=0.5, c='r', label="GT Fitted Primitive")
     ax.scatter(plot_data_dict["gt_template_pred_param"][:,0], plot_data_dict["gt_template_pred_param"][:,1], s=1, c='darkgreen', alpha=0.5, label="GT Primitive Pred Params")
@@ -572,22 +600,6 @@ class Trainer():
         
         self.hp = hp
         self.args = args 
-        
-        if args.enable_wandb:
-            wandb.init(project=args.wandb_project_name, entity=args.wandb_project_entity, config=hp.__dict__)
-        
-        self.enable_wandb = args.enable_wandb and not wandb.run is None
-        if self.enable_wandb:
-            self.run_name = wandb.run.name 
-        else:
-            import datetime
-            import time 
-            ts = time.time()                                                                                            
-            self.run_name = datetime.datetime.fromtimestamp(ts).strftime('%Y_%m_%d_%H_%M_%S') 
-        
-        self.save_folder = os.path.join(args.save_root_folder, self.run_name)
-        if not os.path.exists(self.save_folder):
-            os.mkdir(self.save_folder)
         self.templates = templates
         
         self.train_dataset = PrimitiveDataset(args.train_file, vocab, hp.parameter_names, use_image=args.use_image)
@@ -604,8 +616,9 @@ class Trainer():
                 shuffle=False, 
                 num_workers=args.num_workers, 
                 collate_fn=collate_primitivedataset)
-        self.train_sequences = pickle.load(open(args.train_seq_file, 'rb'))
-        self.test_sequences = pickle.load(open(args.test_seq_file, 'rb'))
+        hp.canvas_size = self.train_dataset.canvas_size
+        # self.train_sequences = pickle.load(open(args.train_seq_file, 'rb'))
+        # self.test_sequences = pickle.load(open(args.test_seq_file, 'rb'))
 
         self.device = "cuda" # if torch.cuda.is_available() else "cpu"
         self.model = PrimitiveSelector(hp, img_enc=img_encoder).cuda()
@@ -616,6 +629,22 @@ class Trainer():
         self.train_meter = Meter("train")
         
         self.num_pngs_per_row = 3
+        
+        if args.enable_wandb:
+            wandb.init(project=args.wandb_project_name, entity=args.wandb_project_entity, config=hp.__dict__)
+        
+        self.enable_wandb = args.enable_wandb and not wandb.run is None
+        if self.enable_wandb:
+            self.run_name = wandb.run.name 
+        else:
+            import datetime
+            import time 
+            ts = time.time()                                                                                            
+            self.run_name = datetime.datetime.fromtimestamp(ts).strftime('%Y_%m_%d_%H_%M_%S') 
+        
+        self.save_folder = os.path.join(args.save_root_folder, self.run_name)
+        if not os.path.exists(self.save_folder):
+            os.mkdir(self.save_folder)
     
     def loss(self, y_list, normal_dists, pi_dists, calculate_mean=True):
         losses = []
@@ -633,22 +662,7 @@ class Trainer():
             #     print(f"{param_idx}: ", torch.exp(loglik))
         return losses
     
-    def calculate_metric(self, descriptions, dataset_indices, prim_types, param_samples, plot_indices=None, train=False, plot = False):
-        """_summary_
-
-        Parameters
-        ----------
-        dataset_indices : _type_
-            _description_
-        prim_types : torch.Tensor (N,)
-            _description_
-        param_samples : list of torch.Tensor
-            list of tensors of shape (N, output_dim) 
-
-        Returns
-        -------
-        """
-        
+    def calculate_metric(self, descriptions, dataset_indices, prim_types, param_samples, images=None, plot_indices=None, train=False, plot = False):
         dataset_indices_plot = []
         plot_indices = plot_indices if plot_indices is not None else np.arange(len(dataset_indices))
         if plot:
@@ -666,22 +680,16 @@ class Trainer():
             data_idx = dataset_indices[idx].item()
             prim_type = prim_types[idx].item()
             pred_params = [sample[idx].item() for sample in param_samples]
-            if train:
-                info = self.train_dataset.data_raw[data_idx]
-            else:
-                info = self.test_dataset.data_raw[data_idx]
+            info = self.train_dataset.data_raw[data_idx] if train else self.test_dataset.data_raw[data_idx]
            
             pred_template_name, pred_template = self.templates[int(prim_type)]
-            gt_template_name,_ = self.templates[int(info["primitive_type"])]
-            if train:
-                data, gt_template, gt_fitted_template, gt_img = self.train_sequences[data_idx]
-            else:
-                data, gt_template, gt_fitted_template, gt_img = self.test_sequences[data_idx]
+            gt_template_name, gt_template = self.templates[int(info["primitive_type"])]
+            
+            gt_fitted_template = info["result"]
             gt_params = [info[self.hp.parameter_names[pi]] for pi in range(len(self.hp.parameter_names))]
             
             pred_info = {}
-            for pi in range(len(self.hp.parameter_names)):
-                pred_info[self.hp.parameter_names[pi]] = pred_params[pi]
+            for pi in range(len(self.hp.parameter_names)): pred_info[self.hp.parameter_names[pi]] = pred_params[pi]
             pred_M = GET_AFFINE_FUNCS[self.hp.get_affine_func_name](pred_info)
             
             if self.args.use_projective:
@@ -690,11 +698,14 @@ class Trainer():
                 pred_template_pred_param = cv2.transform(np.array([pred_template]).astype(np.float32), pred_M)[0][:,:-1]
 
             # gt_img = np.asarray(rd.render_img([gt_fitted_template], line_diameter=3))
-            pred_img = np.asarray(rd.render_img([pred_template_pred_param], line_diameter=3))
-            chamfer_dist = chamfer_distance(data, pred_template_pred_param)
-            mse = mse_metric(gt_img, pred_img)
+            # pred_img = np.asarray(rd.render_img([pred_template_pred_param], line_diameter=3))
+            pred_img = rd.render_img([pred_template_pred_param], side=self.train_dataset.canvas_size, line_diameter=self.train_dataset.line_diameter, original_side = self.train_dataset.canvas_size, invert=False)
+            pred_img = transforms.ToTensor()(pred_img).squeeze(0).numpy()
+            # 
+            chamfer_dist = chamfer_distance(info["data"], pred_template_pred_param)
+            mse = mse_metric(info["gt_img"], pred_img)
             psnr = 100 if np.isclose(mse, 0.0, rtol=0.0, atol=1e-5) else 20 * np.log10(255 / (np.sqrt(mse)))
-            ssim = structural_similarity(gt_img, pred_img, multichannel=False, data_range=255)
+            ssim = structural_similarity(info["gt_img"], pred_img, multichannel=False, data_range=1)
             calculated_metrics = {
                 "mse" : mse,
                 "psnr" : psnr,
@@ -718,12 +729,13 @@ class Trainer():
                 else:
                     pred_template_pred_param = cv2.transform(np.array([pred_template]).astype(np.float32), pred_M)[0][:,:-1]
                 desc2 = " ".join([self.train_dataset.vocab_reverse[j.item()] for j in description_tensor])
+                plot_images = transforms.ToPILImage()(1 - images[idx]) if images is not None else None
                 plot_data_dict = {
-                    "original_data" : data,
+                    "original_data" : info["data"],
                     "gt_template_gt_param" : gt_fitted_template,
                     "gt_template_pred_param": correct_template_pred_param,
                     "pred_template_pred_param": pred_template_pred_param,
-                    "canvas_size" : self.args.canvas_size,
+                    "canvas_size" : self.train_dataset.canvas_size,
                     "gt_template_name" : gt_template_name,
                     "pred_template_name" : pred_template_name,
                     "original_description" : info["processed"],
@@ -735,6 +747,8 @@ class Trainer():
                     "parameter_names" : self.hp.parameter_names,
                     "gt_params" : gt_params,
                     "pred_params" : pred_params,
+                    "previous_strokes" : info["previous_strokes"],
+                    "image" : plot_images,
                 }
                 handles, labels = visualize_fitted_primitive(ax, plot_data_dict, last_ax=plot_i == num_visualize-1)
                 
@@ -760,10 +774,8 @@ class Trainer():
                 params_gt_list = [affine_paramss[:,i].view(-1,1) for i in range(affine_paramss.shape[1])]
 
                 # prim_pred, pi_list, mu_list, sigma_list = self.model(description_ts_packed)
-                if self.args.use_image:
-                    images = output_dict["image"].to(self.device)
-                else: 
-                    images = None
+                images = output_dict["image"].to(self.device) if self.args.use_image else None
+                # 
                 prim_pred, normal_dists, pi_dists = self.model(description_ts_packed, image=images)         
                 self.optimizer.zero_grad()
                 
@@ -798,10 +810,15 @@ class Trainer():
                             dataset_indices = output_dict["index"]
                             description_ts_packed = rnn.pack_sequence(description_ts)
                             description_ts_packed, primitive_types, affine_paramss = description_ts_packed.to(self.device), primitive_types.to(self.device), affine_paramss.to(self.device)
-                            prim_pred, normal_dists, pi_dists = self.model(description_ts_packed)
+                            images = output_dict["image"].to(self.device) if self.args.use_image else None
+                            prim_pred, normal_dists, pi_dists = self.model(description_ts_packed, image=images)
+                            
                             prim_types = torch.argmax(prim_pred, dim=1)
                             param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1   
-                            _ = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices=None, train=True, plot=False)
+                            images_to_plot = images.detach().cpu()if images is not None else None
+                            _ = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, images=images_to_plot, plot_indices=None, train=True, plot=False)
+                            # if batch_idx > 2:
+                            #     break
                     log_dict = self.train_meter.finalize_metric()
                     if self.enable_wandb:
                         wandb.log(log_dict, step=step)
@@ -867,8 +884,9 @@ class Trainer():
                 param_samples = self.sample_parameters(normal_dists, pi_dists) # each: N x 1
                 np.random.seed(123)
                 plot_indices = np.random.choice(len(dataset_indices), self.args.num_visualize, replace=False)
-                
-                fig, dataset_indices_plot = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, plot_indices, plot=True)  
+                # import pdb; pdb.set_trace()
+                images_to_plot = images.detach().cpu()if images is not None else None
+                fig, dataset_indices_plot = self.calculate_metric(description_ts, dataset_indices, prim_types, param_samples, images=images_to_plot, plot_indices=plot_indices, plot=True)  
                 image_name = f"{step}-"+",".join([str(x) for x in dataset_indices_plot])
                 fig.suptitle(image_name)
                 if self.enable_wandb:
