@@ -1193,7 +1193,7 @@ def process_quickdraw_to_part_convex_hull(part, b_spline_num_sampled_points=200)
     mins = np.min(strokes, axis=0)
     ll = maxs - mins
     
-    one_stroke = len(part) > 1
+    one_stroke = len(part) == 1
     more_than_3_points = len(strokes) >= 3
     has_length_x =  not np.isclose(ll[0], 0.0, rtol=1, atol=1e-05)
     has_length_y = not np.isclose(ll[1], 0.0, rtol=1, atol=1e-05)

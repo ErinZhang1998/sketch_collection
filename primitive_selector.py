@@ -92,16 +92,17 @@ def create_split(arr_length):
     return split_dict
 
 def rescale_stroke(stroke, canvas_size, original_size):
-    stroke[:, 0] *= canvas_size/original_size
-    stroke[:, 1] *= canvas_size/original_size
-    return stroke
+    stroke_new = np.copy(stroke)
+    stroke_new[:, 0] *= canvas_size/original_size
+    stroke_new[:, 1] *= canvas_size/original_size
+    return stroke_new
 
 def image_bit(img, bkg = 255):
     img[np.isclose(img, bkg, atol=1e-05)] = 0
     img[not np.isclose(img, bkg, atol=1e-05)] = 1
     return img
 
-def prepare_data(df, templates, img_root_path, line_diameter=3, canvas_size = 64, num_sampled_points = 200, use_projective = False):
+def prepare_data(df, templates, img_root_path, save_path_prefix = None, line_diameter=3, canvas_size = 64, num_sampled_points = 200, use_projective = False):
     """Prepare and face and angel data for PrimitiveSelector training.
     Parameters
     ----------
@@ -137,9 +138,10 @@ def prepare_data(df, templates, img_root_path, line_diameter=3, canvas_size = 64
         else:
             _,_,current_strokes, previous_strokes = angel_d[entry['image_1']][entry['part']]
         current_strokes = [rescale_stroke(x, canvas_size, 256) for x in current_strokes]
-        previous_strokes = [rescale_stroke(x, canvas_size, 256) for x in previous_strokes]
+        previous_strokes = [rescale_stroke(x, canvas_size, 256)[:,:2] for x in previous_strokes]
         data = rd.process_quickdraw_to_part_convex_hull(current_strokes, b_spline_num_sampled_points=num_sampled_points)
-        img_path = os.path.join(img_root_path, f"{entry['image_1']}_{entry['part']}.png")
+        img_path = os.path.join(img_root_path, f"{entry['category']}_{entry['image_1']}_{entry['part']}_history.png")
+
         img = rd.render_img(previous_strokes, img_path=img_path, side=canvas_size, line_diameter=line_diameter, original_side = canvas_size)
         
         min_template_squared_error = np.inf
@@ -187,8 +189,35 @@ def prepare_data(df, templates, img_root_path, line_diameter=3, canvas_size = 64
             'split' : split_dict[i],
             'data' : data,
             'result' : min_result,
+            "current_strokes" : current_strokes,
+            "previous_strokes" : previous_strokes,
         }
         all_data.append(info)
+    if save_path_prefix is not None:
+        assert ".pkl" not in save_path_prefix
+        with open(f"{save_path_prefix}.pkl", "wb") as f:
+            save_dict = {
+                "all" : all_data,
+                "line_diameter" : line_diameter,
+                "canvas_size" : canvas_size,
+                "num_sampled_points" : num_sampled_points,
+                "use_projective" : use_projective,
+            }
+            pickle.dump(save_dict, f)
+
+        for t in ["train", "dev", "test"]:
+            data_split = [x for x in all_data if x["split"] == t]
+            # data_split_dict = dict(zip(range(len(data_split)), data_split))
+            save_dict = {
+                "all" : data_split,
+                "line_diameter" : line_diameter,
+                "canvas_size" : canvas_size,
+                "num_sampled_points" : num_sampled_points,
+                "use_projective" : use_projective,
+            }
+            with open(f"{save_path_prefix}_{t}.pkl", "wb+") as f:
+                pickle.dump(data_split, f)
+
     return all_data
 
 def preprocess_sequence(path, templates, num_sampled_points, use_projective):
